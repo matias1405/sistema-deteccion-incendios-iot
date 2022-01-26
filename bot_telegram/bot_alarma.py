@@ -1,3 +1,4 @@
+from paho.mqtt import client as mqtt_client
 from telegram.ext import CommandHandler, Updater, ConversationHandler, CallbackQueryHandler, MessageHandler, Filters
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Bot
 import os
@@ -7,6 +8,11 @@ _token = os.environ['TOKEN']
 password = '1405'
 input_text = 0
 chats_aceptados = []
+
+broker = 'localhost'
+port = 1883
+topic = "python/mqtt"
+
 
 def start(update, context):
     button_1 = InlineKeyboardButton(
@@ -26,7 +32,7 @@ def callback_terminado(update, context):
     query = update.callback_query
     query.answer()
     query.edit_message_text(text='Aviso enviado')
-    print('avisado')
+    print('Aviso de incendio terminado RECIBIDO')
 
 def callback_dar_baja(update, context):
     query = update.callback_query
@@ -42,15 +48,40 @@ def verificacion_password(update, context):
     return ConversationHandler.END
 
 def notificar():
-    time.sleep(100)
+    aviso = 'Este es un aviso de INCENDIO, por favor contacta con las \
+    autoridades de emergencia.\nNro tel Bomberos: 105\nNro tel Policia \
+    101\n Por favor notifique por este medio al Sistema cuando la situacion\
+    de incendio alla terminado'
     print('noificando...')
     bot=Bot(_token)
     button = InlineKeyboardButton(text = 'Incendio Terminado',
                                   callback_data = 'incendio_terminado')
     for id_acep in chats_aceptados:
         bot.send_message(chat_id=id_acep,
-                         text='avisa de incendio',
+                         text=aviso,
                          reply_markup = InlineKeyboardMarkup([[button]]))
+
+def connect_mqtt() -> mqtt_client:
+    def on_connect(client, userdata, flags, rc):
+        if rc == 0:
+            print("Connected to MQTT Broker!")
+        else:
+            print("Failed to connect, return code %d\n", rc)
+    client = mqtt_client.Client()
+    #client.username_pw_set(username, password)
+    client.on_connect = on_connect
+    client.connect(broker, port)
+    return client
+
+
+def subscribe(client: mqtt_client):
+    def on_message(client, userdata, msg):
+        mensaje = msg.payload.decode()
+        print(f"Received `{mensaje}` from `{msg.topic}` topic")
+        if mensaje == 'incendio':
+            notificar()
+    client.subscribe(topic)
+    client.on_message = on_message
 
 if __name__ == '__main__':
     _entry = [CallbackQueryHandler(pattern = 'password', callback = callback_password)]
@@ -58,15 +89,14 @@ if __name__ == '__main__':
               'estate_2' : []}
 
     updater = Updater(token = _token, use_context = True)
-
     dp = updater.dispatcher
-
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CallbackQueryHandler(pattern = 'incendio_terminado', callback = callback_terminado))
     dp.add_handler(CallbackQueryHandler(pattern = 'baja', callback = callback_dar_baja))
     dp.add_handler(ConversationHandler(entry_points=_entry, states=_states,
     fallbacks=[]))
     updater.start_polling()
-    while(True):
-        notificar()
+    client = connect_mqtt()
+    subscribe(client)
+    client.loop_forever()
     updater.idle()
