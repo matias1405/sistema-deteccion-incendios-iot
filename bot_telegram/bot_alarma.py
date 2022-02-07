@@ -45,6 +45,40 @@ broker = 'localhost'
 port = 1883
 topic = "s-alerta-incendio/estado"
 
+#================ definicion de clases ===================================
+
+class BaseDeDatos:
+    def __init__(self, _path):
+        self.path = _path
+        self.chats_aceptados = []
+        try:
+            with open(self.path, 'rt') as f:
+                self.chats_aceptados = f.readlines()
+        except:
+            with open(self.path, 'wt') as f:
+                pass
+
+    def add(id):
+        id = str(id) + "\n"
+        if id not in self.chats_aceptados:
+            with open(self.path, 'r+t') as f:
+                f.write(id)
+            with open(self.path, 'rt') as f:
+                self.chats_aceptados = f.readlines()
+
+    def remove(id):
+        id = str(id) + "\n"
+        with open(self.path, 'wt') as f:
+            for chat in self.chats_aceptados:
+                if chat != id:
+                    f.write(chat)
+        with open(self.path, 'rt') as f:
+            self.chats_aceptados = f.readlines()
+
+    def get_id():
+        return [int(chat) for chat in self.chats_aceptados]
+
+
 #============== definicion de funciones ==================================
 
 def start(update, context):
@@ -100,6 +134,7 @@ def callback_dar_baja(update, context):
     """
     query = update.callback_query
     query.answer()
+    db.remove(update.message.chat.id)
 
 
 def verificacion_password(update, context):
@@ -116,7 +151,7 @@ def verificacion_password(update, context):
     if password == update.message.text:
         update.message.reply_text('Contraseña aceptada')
         update.message.reply_text('Se enviará una alerta en caso de incendio')
-        chats_aceptados.append(update.message.chat.id)
+        db.add(update.message.chat.id)
     else:
         update.message.reply_text('Contraseña incorrecta')
     return ConversationHandler.END
@@ -177,7 +212,7 @@ def notificar():
         text = 'Incendio Terminado',
         callback_data = 'incendio_terminado'
     )
-    for id_acep in chats_aceptados:
+    for id_acep in db.get_id():
         bot.send_message(
             chat_id=id_acep,
             text=aviso,
@@ -186,6 +221,10 @@ def notificar():
 
 
 if __name__ == '__main__':
+
+    #creacion de la base de datos
+
+    db = BaseDeDatos("./chats_id.txt")
 
     #========== comandos de para interactuar con telegram ====================
 
