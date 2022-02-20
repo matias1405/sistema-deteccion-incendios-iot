@@ -17,9 +17,10 @@ El usuario de telegram que desee ser notificado deberá iniciar el bot y
 colocar la contraseña del sistema.
 """
 
-
-import os
-import time
+from datetime import datetime
+from os import environ
+from threading import Thread
+from time import sleep
 
 from paho.mqtt import client as mqtt_client
 from telegram.ext import(
@@ -29,21 +30,24 @@ from telegram.ext import(
     CallbackQueryHandler,
     MessageHandler,
     Filters
-)
+    )
 from telegram import(
     InlineKeyboardMarkup,
     InlineKeyboardButton,
     Bot
-)
+    )
 
-#============== definicion de variables ===================================
+#=========== definicion de variables y constantes globales =====================
 
-_token = os.environ['TOKEN'] #obtenemos el token de una varible de entorno
-password = '1405'
+_token = environ['TOKEN'] #obtenemos el token de una varible de entorno
+PASSWORD = '1405'
 chats_aceptados = []
-broker = 'localhost'
-port = 1883
-topic = "s-alerta-incendio/estado"
+lista_novedades = []
+BROKER = 'localhost'
+PORT = 1883
+TOPIC_SUB = "s-alerta-incendio/estado"
+TOPIC_PUB = "s-alerta-incendio/novedades"
+HORA_PUB = "12:00:00"
 
 #================ definicion de clases ===================================
 
@@ -58,7 +62,7 @@ class BaseDeDatos:
             with open(self.path, 'wt') as f:
                 pass
 
-    def add(id):
+    def add(self, id):
         id = str(id) + "\n"
         if id not in self.chats_aceptados:
             with open(self.path, 'r+t') as f:
@@ -66,7 +70,7 @@ class BaseDeDatos:
             with open(self.path, 'rt') as f:
                 self.chats_aceptados = f.readlines()
 
-    def remove(id):
+    def remove(self, id):
         id = str(id) + "\n"
         with open(self.path, 'wt') as f:
             for chat in self.chats_aceptados:
@@ -75,7 +79,7 @@ class BaseDeDatos:
         with open(self.path, 'rt') as f:
             self.chats_aceptados = f.readlines()
 
-    def get_id():
+    def get_id(self):
         return [int(chat) for chat in self.chats_aceptados]
 
 
@@ -111,6 +115,26 @@ def callback_password(update, context):
     return 'estate_1'
 
 
+def verificacion_password(update, context):
+    """
+    Esta función es llamada cuando el usuario ingreso la contraseña de
+    verificacion.
+    + Si la contraseña es correcta se responde positivamente y se llama a
+    la funcion agregar_usuario.
+    + Si la contraseña no es correcta se responde negativamente. Nota: en este
+    caso si el usuario quiere ser avisado por el bot deberá volver a iniciarlo.
+
+    Luego termina la conversacion.
+    """
+    if PASSWORD == update.message.text:
+        update.message.reply_text('Contraseña aceptada')
+        update.message.reply_text('Se enviará una alerta en caso de incendio')
+        db.add(update.message.chat.id)
+    else:
+        update.message.reply_text('Contraseña incorrecta')
+    return ConversationHandler.END
+
+
 def callback_terminado(update, context):
     """
     Responde silenciosamente al llamado de una callback_query, luego cambia el
@@ -134,27 +158,9 @@ def callback_dar_baja(update, context):
     """
     query = update.callback_query
     query.answer()
-    db.remove(update.message.chat.id)
-
-
-def verificacion_password(update, context):
-    """
-    Esta función es llamada cuando el usuario ingreso la contraseña de
-    verificacion.
-    + Si la contraseña es correcta se responde positivamente y se llama a
-    la funcion agregar_usuario.
-    + Si la contraseña no es correcta se responde negativamente. Nota: en este
-    caso si el usuario quiere ser avisado por el bot deberá volver a iniciarlo.
-
-    Luego termina la conversacion.
-    """
-    if password == update.message.text:
-        update.message.reply_text('Contraseña aceptada')
-        update.message.reply_text('Se enviará una alerta en caso de incendio')
-        db.add(update.message.chat.id)
-    else:
-        update.message.reply_text('Contraseña incorrecta')
-    return ConversationHandler.END
+    query.edit_message_text(text='Baja de servicio completada.')
+    print(context._chat_id_and_data[0])
+    db.remove(context._chat_id_and_data[0])
 
 
 def connect_mqtt() -> mqtt_client:
@@ -172,8 +178,7 @@ def connect_mqtt() -> mqtt_client:
 
     client = mqtt_client.Client()
     client.on_connect = on_connect
-    print('2')
-    client.connect(broker, port)
+    client.connect(BROKER, PORT)
     return client
 
 
@@ -187,11 +192,13 @@ def subscribe(client: mqtt_client):
     """
     def on_message(client, userdata, msg):
         mensaje = msg.payload.decode()
-        print(f"Received `{mensaje}` from `{msg.topic}` topic")
+        print(f"Received '{mensaje}' from '{msg.topic}' topic")
         if mensaje == 'incendio':
             notificar()
+        else:
+            lista_novedades.append(mensaje)
 
-    client.subscribe(topic)
+    client.subscribe(TOPIC_SUB)
     client.on_message = on_message
 
 
@@ -205,7 +212,7 @@ def notificar():
     aviso = 'Este es un aviso de INCENDIO, por favor contacta con las\
     autoridades de emergencia.\nNro tel Bomberos: 105\nNro tel Policia\
     101\nPor favor notifique por este medio al Sistema cuando la situación\
-    de incendio haya terminado'
+    de incendio haya terminado.'
     print('noificando...')
     bot=Bot(_token)
     button = InlineKeyboardButton(
@@ -219,6 +226,50 @@ def notificar():
             reply_markup = InlineKeyboardMarkup([[button]])
         )
 
+
+def notificar_novedades():
+    bot=Bot(_token)
+    aviso = "Este mensaje se envía automaticamente una vez al dia. Las\
+    novedades de hoy son:"
+    aviso_baja = "Si desea dar de baja este numero para el Sistema de Alerta\
+    contra incendio, oprima el boton de abajo."
+    button = InlineKeyboardButton(
+        text = 'Dar de baja',
+        callback_data = 'baja'
+    )
+    for id_acep in db.get_id():
+        bot.send_message(
+            chat_id=id_acep,
+            text=aviso
+        )
+        if len(lista_novedades) == 0:
+            bot.send_message(
+                chat_id=id_acep,
+                text="No hay novedades el día de hoy."
+            )
+        else:
+            for novedad in lista_novedades:
+                bot.send_message(
+                    chat_id=id_acep,
+                    text=novedad
+                )
+        bot.send_message(
+            chat_id=id_acep,
+            text=aviso_baja,
+            reply_markup = InlineKeyboardMarkup([[button]])
+        )
+
+
+def revisar_hora():
+    hora_pub = datetime.strptime(HORA_PUB, '%H:%M:%S')
+    while(True):
+        if datetime.now().hour == hora_pub.hour:
+            notificar_novedades()
+            sleep(60*60*23)
+        sleep(120)
+
+
+#==================== Programa Principal =======================================
 
 if __name__ == '__main__':
 
@@ -234,16 +285,6 @@ if __name__ == '__main__':
     dp = updater.dispatcher
     #cuando el bot reciba el comando '/start', llama a la fucion start
     dp.add_handler(CommandHandler('start', start))
-    #cuando el se reciba un callback_data relacionado a la palabra pattern
-    #llama a la funcion callback especificada
-    dp.add_handler(CallbackQueryHandler(
-        pattern = 'incendio_terminado',
-        callback = callback_terminado)
-    )
-    dp.add_handler(CallbackQueryHandler(
-        pattern = 'baja',
-        callback = callback_dar_baja)
-    )
     #crea una conversacion con los siguientes puntos de entradas y estados
     dp.add_handler(ConversationHandler(
         entry_points = [CallbackQueryHandler(
@@ -256,6 +297,16 @@ if __name__ == '__main__':
         },
         fallbacks=[])
     )
+    #cuando el se reciba un callback_data relacionado a la palabra pattern
+    #llama a la funcion callback especificada
+    dp.add_handler(CallbackQueryHandler(
+        pattern = 'incendio_terminado',
+        callback = callback_terminado)
+    )
+    dp.add_handler(CallbackQueryHandler(
+        pattern = 'baja',
+        callback = callback_dar_baja)
+    )
     #empieza a escanear el updater en busca de novedades en segundo plano
     updater.start_polling()
 
@@ -264,6 +315,9 @@ if __name__ == '__main__':
     #crea un objeto cliente de la clase mqtt_client
     client = connect_mqtt()
     subscribe(client)
+    #crea un hilo en segundo plano para publicar en novedades una vez al dia
+    hilo = Thread(target=revisar_hora, daemon=True)
+    hilo.start()
     #busca novedades del cliente en segundo plano
     client.loop_forever()
     updater.idle()
