@@ -1,3 +1,10 @@
+# Universidad Tecnológica Nacional - Facultad Regional Tucumán
+# Proyecto Final de grado
+# Sistema de Alarma contra Incendios basado en Tecnologías de IoT
+# Dessarolladores:
+#    + Matías Alfaro - matiasalfaro1405@gmail.com
+#    + Romina Farías - romii12mf@gmail.com
+
 import machine as m
 import network
 import socket
@@ -18,6 +25,12 @@ PIN_LED_VERDE = 36
 WIFI_NAME = "WIFI_SIST_P_INCENDIOS"
 PASSWORD = "MANCHITA14"
 ADDRS = ('192.168.0.14', 2020)
+
+TIEMPO_PUB = 60
+TEMP_MAX = 57
+VEL_AUMENT_TEMP_MAX = 8.3
+FLAMA_MAX = 616842138483
+TENSION_BATERIA_MIN = 3.1
 
 #============== definicion de clases ========================================
 
@@ -41,9 +54,9 @@ class Cola_Temperatura:
             self.remove()
         if len(self.lista_temp) >= 3:
             cambio = (self.lista_temp[2]-self.lista_temp[0])
-            if cambio > 8.3:
+            if cambio > VEL_AUMENT_TEMP_MAX:
                 estado.temperatura(True)
-            elif self.lista_temp[2] > 57:
+            elif self.lista_temp[2] > TEMP_MAX:
                 estado.temperatura(True)
             else:
                 estado.temperatura(False)
@@ -69,15 +82,34 @@ class Estado:
 
 #============== definicion de funciones ========================================
 
+def medir_flama():
+    tamaño = s_flama.read()
+
+
+def medir_humo():
+    humo = s_humo.read()
+
+
+def medir_bateria():
+    carga = s_bateria.read()
+    tension_bateria = carga * 3.3 / 4096
+    if tension_bateria <= TENSION_BATERIA_MIN:
+        estado.estado_bateria(False)
+    else:
+        estado.estado_bateria(True)
+
+
 def verificar():
     suma = sum(self.list_estado)
     if suma >= 2:
         incendio()
-    if not bateria:
+    if not estado.estado_bateria:
         bateria_baja()
+
 
 def incendio():
     pass
+
 
 def bateria_baja():
     pass
@@ -129,10 +161,11 @@ temperatura = Cola_Temperatura()
 
 
 while(True):
-    time.sleep(30)
-    temperatura.medir_cambio(s_temperatura.read())
-    time.sleep(30)
-    temperatura.medir_cambio(s_temperatura.read())
-    flama = s_flama.read()
-    humo = s_humo.read()
-    estado.bateria(s_bateria.read())
+    time.sleep(TIEMPO_PUB/2)
+    temperatura.medir()
+    time.sleep(TIEMPO_PUB/2)
+    temperatura.medir()
+    medir_flama()
+    medir_humo()
+    medir_bateria()
+    verificar()
