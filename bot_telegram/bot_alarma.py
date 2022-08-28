@@ -39,7 +39,8 @@ from telegram import(
 
 #=========== definicion de variables y constantes globales =====================
 
-_token = environ['TOKEN'] #obtenemos el token de una varible de entorno
+#_token = environ['TOKEN'] #obtenemos el token de una varible de entorno
+_token = "5129425944:AAE9qC_w4bvcXH-j6Zuf0Mb1Qf27KR7h4IM"
 PASSWORD = '1405'
 chats_aceptados = []
 lista_novedades = []
