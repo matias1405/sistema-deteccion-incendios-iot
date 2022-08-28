@@ -4,8 +4,9 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Bot
 import os
 import time
 
-_token = os.environ['TOKEN']
+#_token = os.environ['TOKEN']
 password = '1405'
+_token = "5129425944:AAE9qC_w4bvcXH-j6Zuf0Mb1Qf27KR7h4IM"
 input_text = 0
 chats_aceptados = []
 
