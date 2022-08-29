@@ -53,7 +53,7 @@ def notificar():
     autoridades de emergencia.\nNro tel Bomberos: 105\nNro tel Policia \
     101\n Por favor notifique por este medio al Sistema cuando la situacion\
     de incendio alla terminado'
-    print('noificando...')
+    print('notificando...')
     bot=Bot(_token)
     button = InlineKeyboardButton(text = 'Incendio Terminado',
                                   callback_data = 'incendio_terminado')
