@@ -4,7 +4,7 @@ import time
 
 led = m.Pin(2, m.Pin.OUT, value=0)
 s_flama = m.Pin(32, m.Pin.IN)     # create input pin on GPIO2
-while(true):
+while True :
     #leer sensor
     s_flama = m.Pin(32, m.Pin.IN)     # create input pin on GPIO2
     print(s_flama.value())       # get value, 0 or 1
