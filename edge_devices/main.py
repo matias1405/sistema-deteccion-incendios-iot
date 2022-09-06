@@ -12,18 +12,18 @@ import time
 
 #=============== definicion de constantes ======================================
 
-NRO_DISPOSITIVO = 1
+ID_DISPOSITIVO = 1
 
 #Pines analogicos
-PIN_SFLAMA = 32
+PIN_SFLAMA = 22
 PIN_BATERIA = 33
 PIN_SHUMO = 34
 PIN_STEMPERATURA = 35
 #Pines digitales
-PIN_LED_VERDE = 36
+PIN_LED_VERDE = 2
 
-WIFI_NAME = "WIFI_SIST_P_INCENDIOS"
-PASSWORD = "MANCHITA14"
+WIFI_NAME = "WiFi-Arnet-6jbs"
+PASSWORD = "j3ygefpf"
 ADDRS = ('192.168.0.14', 2020)
 
 TIEMPO_PUB = 60
@@ -35,6 +35,11 @@ TENSION_BATERIA_MIN = 3.1
 #============== definicion de clases ========================================
 
 class Cola_Temperatura:
+    """Pila de temperaturas en grados centigrados.
+    lista_temp[0] es temperatura hace un minuto
+    lista_temp[1] es temperatiura hace 30 segundos
+    lista_temp[1] es la temperatura actual
+    mide el cambio de temperatura en un minuto y la temperatura actual"""
     def __init__(self):
         self.lista_temp = []
 
@@ -52,7 +57,7 @@ class Cola_Temperatura:
         self.add(temp)
         if len(self.lista_temp) > 3:
             self.remove()
-        if len(self.lista_temp) >= 3:
+        if len(self.lista_temp) >= 3: #lista_temp[0] es temperatura hace un minuto
             cambio = (self.lista_temp[2]-self.lista_temp[0])
             if cambio > VEL_AUMENT_TEMP_MAX:
                 estado.temperatura(True)
@@ -63,9 +68,15 @@ class Cola_Temperatura:
 
 
 class Estado:
+    """
+    alamcena dos lista: la primera almacena el estado dado por los ssensores
+    de temperatura, flama y humo.
+    la segunda lista almacena el estado de la bateria. 
+    """
     def __init__(self)
         self.list_estado = [False, False, False]
         self.estado_bateria = True
+        self.suma = 0
 
     def temperatura(self, x):
         self.list_estado[0] = x
@@ -78,19 +89,31 @@ class Estado:
 
     def bateria(x):
         self.estado_bateria = x
+    
+    def verificar():
+        self.suma = sum(self.list_estado)
+        if self.suma >= 2:
+            incendio()
+        if not self.estado_bateria:
+            bateria_baja()
 
 
 #============== definicion de funciones ========================================
 
 def medir_flama():
-    tamaño = s_flama.read()
+    pass
+    #tamaño = s_flama.read()
 
 
 def medir_humo():
-    humo = s_humo.read()
-
+    #humo = s_humo.read()
+    pass
 
 def medir_bateria():
+    """
+    mide la carga de la bateria, si la carga baja de cierto valor cambia el valor de la lista 
+    de estado de bateria.
+    """
     carga = s_bateria.read()
     tension_bateria = carga * 3.3 / 4096
     if tension_bateria <= TENSION_BATERIA_MIN:
@@ -99,12 +122,7 @@ def medir_bateria():
         estado.estado_bateria(True)
 
 
-def verificar():
-    suma = sum(self.list_estado)
-    if suma >= 2:
-        incendio()
-    if not estado.estado_bateria:
-        bateria_baja()
+
 
 
 def incendio():
@@ -132,7 +150,7 @@ while not wf.isconnected():
     count += 1
     if count > 12:
         led.value(count%2)
-
+"""
 #creo el socket cliente, si la conexion es exitosa enciende el led por 3 seg
 s = socket.socket()
 while True:
@@ -142,9 +160,8 @@ while True:
         time.sleep(0.5)
         continue
     break
+"""
 led.on()
-time.sleep(3)
-led.off()
 
 #creacion de los objetos para los sensores
 s_flama = m.ADC(Pin(PIN_SFLAMA))
@@ -156,9 +173,11 @@ s_temperatura.atten(m.ADC.ATTN_2_5DB)
 s_bateria = m.ADC(Pin(PIN_BATERIA))
 s_bateria.atten(m.ADC.ATTN_11DB)
 
+time.sleep(3)
+led.off()
+
 estado = Estado()
 temperatura = Cola_Temperatura()
-
 
 while(True):
     time.sleep(TIEMPO_PUB/2)
@@ -168,4 +187,4 @@ while(True):
     medir_flama()
     medir_humo()
     medir_bateria()
-    verificar()
+    estado.verificar()
