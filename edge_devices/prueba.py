@@ -171,13 +171,13 @@ led.on()
 
 
 #creacion de los objetos para los sensores
-s_flama = m.ADC(m.Pin(PIN_SFLAMA))
+s_flama = m.ADC(PIN_SFLAMA)
 s_flama.atten(m.ADC.ATTN_11DB)
-s_humo = m.ADC(m.Pin(PIN_SHUMO))
+s_humo = m.ADC(PIN_SHUMO)
 s_humo.atten(m.ADC.ATTN_11DB)
-s_temperatura = m.ADC(m.Pin(PIN_STEMPERATURA))
+s_temperatura = m.ADC(PIN_STEMPERATURA)
 s_temperatura.atten(m.ADC.ATTN_2_5DB)
-s_bateria = m.ADC(m.Pin(PIN_BATERIA))
+s_bateria = m.ADC(PIN_BATERIA)
 s_bateria.atten(m.ADC.ATTN_11DB)
 
 time.sleep(3)
