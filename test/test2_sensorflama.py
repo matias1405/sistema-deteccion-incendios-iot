@@ -3,7 +3,7 @@ import time
 
 
 led = m.Pin(2, m.Pin.OUT, value=0)
-s_flama = m.Pin(22, m.Pin.IN)     # create input pin on GPIO2
+s_flama = m.Pin(22, m.Pin.IN, m.Pin.PULL_UP)     # create input pin on GPIO2
 while True :
     #leer sensor
     s_flama = m.Pin(22, m.Pin.IN)     # create input pin on GPIO2

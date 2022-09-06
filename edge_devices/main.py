@@ -73,7 +73,7 @@ class Estado:
     de temperatura, flama y humo.
     la segunda lista almacena el estado de la bateria. 
     """
-    def __init__(self)
+    def __init__(self):
         self.list_estado = [False, False, False]
         self.estado_bateria = True
         self.suma = 0
