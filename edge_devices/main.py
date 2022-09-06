@@ -43,7 +43,7 @@ class Cola_Temperatura:
     def __init__(self):
         self.lista_temp = []
 
-    def medir():
+    def medir(self):
         temp = s_temperatura.read_uv() #valor en uvoltios
         self.medir_cambio(temp/10000)  #temperatura en °C
 
@@ -87,10 +87,10 @@ class Estado:
     def humo(self, x):
         self.list_estado[2] = x
 
-    def bateria(x):
+    def bateria(self, x):
         self.estado_bateria = x
     
-    def verificar():
+    def verificar(self):
         self.suma = sum(self.list_estado)
         if self.suma >= 2:
             incendio()
@@ -136,7 +136,7 @@ def bateria_baja():
 #============== inicio del programa ============================================
 
 #creacion del objeto led
-led = Pin(PIN_LED_VERDE, Pin.OUT)
+led = m.Pin(PIN_LED_VERDE, m.Pin.OUT)
 led.off()
 
 #conexion al wifi, si no hay conexion despues de 6 segundos empieza el led a
@@ -164,13 +164,13 @@ while True:
 led.on()
 
 #creacion de los objetos para los sensores
-s_flama = m.ADC(Pin(PIN_SFLAMA))
+s_flama = m.ADC(m.Pin(PIN_SFLAMA))
 s_flama.atten(m.ADC.ATTN_11DB)
-s_humo = m.ADC(Pin(PIN_SHUMO))
+s_humo = m.ADC(m.Pin(PIN_SHUMO))
 s_humo.atten(m.ADC.ATTN_11DB)
-s_temperatura = m.ADC(Pin(PIN_STEMPERATURA))
+s_temperatura = m.ADC(m.Pin(PIN_STEMPERATURA))
 s_temperatura.atten(m.ADC.ATTN_2_5DB)
-s_bateria = m.ADC(Pin(PIN_BATERIA))
+s_bateria = m.ADC(m.Pin(PIN_BATERIA))
 s_bateria.atten(m.ADC.ATTN_11DB)
 
 time.sleep(3)
