@@ -40,8 +40,7 @@ class Cola_Temperatura:
     lista_temp[1] es temperatiura hace 30 segundos
     lista_temp[1] es la temperatura actual
     mide el cambio de temperatura en un minuto y la temperatura actual"""
-    pass
-    """
+    
     def __init__(self):
         self.lista_temp = []
 
@@ -67,7 +66,7 @@ class Cola_Temperatura:
                 estado.temperatura(True)
             else:
                 estado.temperatura(False)
-"""
+
 
 class Estado:
     """
@@ -116,15 +115,14 @@ def medir_bateria():
     mide la carga de la bateria, si la carga baja de cierto valor cambia el valor de la lista 
     de estado de bateria.
     """
-    """
+    
     carga = s_bateria.read()
     tension_bateria = carga * 3.3 / 4096
     if tension_bateria <= TENSION_BATERIA_MIN:
         estado.estado_bateria(False)
     else:
         estado.estado_bateria(True)
-    """
-    pass
+    
 
 
 
@@ -156,6 +154,8 @@ if not wf.isconnected():
         count += 1
         if count > 12:
             led.value(count%2)
+
+print('network config:', wf.ifconfig())
 """
 #creo el socket cliente, si la conexion es exitosa enciende el led por 3 seg
 s = socket.socket()
@@ -169,7 +169,7 @@ while True:
 """
 led.on()
 
-"""
+
 #creacion de los objetos para los sensores
 s_flama = m.ADC(m.Pin(PIN_SFLAMA))
 s_flama.atten(m.ADC.ATTN_11DB)
@@ -179,7 +179,7 @@ s_temperatura = m.ADC(m.Pin(PIN_STEMPERATURA))
 s_temperatura.atten(m.ADC.ATTN_2_5DB)
 s_bateria = m.ADC(m.Pin(PIN_BATERIA))
 s_bateria.atten(m.ADC.ATTN_11DB)
-"""
+
 time.sleep(3)
 led.off()
 
