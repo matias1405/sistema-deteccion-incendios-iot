@@ -15,7 +15,7 @@ import time
 ID_DISPOSITIVO = 1
 
 #Pines analogicos
-PIN_SFLAMA = 22
+PIN_SFLAMA = 37
 PIN_BATERIA = 33
 PIN_SHUMO = 34
 PIN_STEMPERATURA = 35
@@ -171,13 +171,17 @@ led.on()
 
 
 #creacion de los objetos para los sensores
-s_flama = m.ADC(PIN_SFLAMA)
+pin_s_flama = m.Pin(PIN_SFLAMA)
+s_flama = m.ADC(pin_s_flama)
 s_flama.atten(m.ADC.ATTN_11DB)
-s_humo = m.ADC(PIN_SHUMO)
+pin_s_humo = m.Pin(PIN_SHUMO) 
+s_humo = m.ADC(pin_s_humo)
 s_humo.atten(m.ADC.ATTN_11DB)
-s_temperatura = m.ADC(PIN_STEMPERATURA)
+pin_s_temperatura = m.Pin(PIN_STEMPERATURA)
+s_temperatura = m.ADC(pin_s_temperatura)
 s_temperatura.atten(m.ADC.ATTN_2_5DB)
-s_bateria = m.ADC(PIN_BATERIA)
+pin_s_bateria = m.Pin(PIN_BATERIA)
+s_bateria = m.ADC(pin_s_bateria)
 s_bateria.atten(m.ADC.ATTN_11DB)
 
 time.sleep(3)
