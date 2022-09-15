@@ -24,7 +24,7 @@ PIN_LED_VERDE = 2
 
 WIFI_NAME = "WiFi-Arnet-6jbs"
 PASSWORD = "j3ygefpf"
-ADDRS = ('192.168.0.14', 2020)
+ADDRS = ('192.168.1.15', 2020)
 
 TIEMPO_PUB = 60
 TEMP_MAX = 57
@@ -40,6 +40,7 @@ class Cola_Temperatura:
     lista_temp[1] es temperatiura hace 30 segundos
     lista_temp[1] es la temperatura actual
     mide el cambio de temperatura en un minuto y la temperatura actual"""
+    
     def __init__(self):
         self.lista_temp = []
 
@@ -69,41 +70,46 @@ class Cola_Temperatura:
 
 class Estado:
     """
-    alamcena dos lista: la primera almacena el estado dado por los ssensores
+    almacena dos lista: la primera almacena el estado dado por los ssensores
     de temperatura, flama y humo.
     la segunda lista almacena el estado de la bateria. 
     """
     def __init__(self):
-        self.list_estado = [False, False, False]
+        self.lista_estado = [False, False, False]
         self.estado_bateria = True
         self.suma = 0
 
     def temperatura(self, x):
-        self.list_estado[0] = x
+        self.lista_estado[0] = x
 
     def flama(self, x):
-        self.list_estado[1] = x
+        self.lista_estado[1] = x
 
     def humo(self, x):
-        self.list_estado[2] = x
+        self.lista_estado[2] = x
 
     def bateria(self, x):
         self.estado_bateria = x
     
     def verificar(self):
-        self.suma = sum(self.list_estado)
+        self.suma = sum(self.lista_estado)
         if self.suma >= 2:
             incendio()
         if not self.estado_bateria:
             bateria_baja()
+        self.notificar()
 
+    def notificar(self):
+        print(self.lista_estado)
+        print(self.estado_bateria)
 
 #============== definicion de funciones ========================================
 
 def medir_flama():
-    pass
-    #tamaño = s_flama.read()
-
+    if(s_flama.value() == 1):
+        estado.flama(False)
+    else:
+        estado.flama(True)
 
 def medir_humo():
     #humo = s_humo.read()
@@ -114,14 +120,14 @@ def medir_bateria():
     mide la carga de la bateria, si la carga baja de cierto valor cambia el valor de la lista 
     de estado de bateria.
     """
+    
     carga = s_bateria.read()
     tension_bateria = carga * 3.3 / 4096
     if tension_bateria <= TENSION_BATERIA_MIN:
-        estado.estado_bateria(False)
+        estado.bateria(False)
     else:
-        estado.estado_bateria(True)
-
-
+        estado.bateria(True)
+    
 
 
 
@@ -141,16 +147,20 @@ led.off()
 
 #conexion al wifi, si no hay conexion despues de 6 segundos empieza el led a
 #parpadear
+
 wf = network.WLAN(network.STA_IF)
 wf.active(True)
-wf.connect(WIFI_NAME, PASSWORD)
-count = 0
-while not wf.isconnected():
-    time.sleep(0.5)
-    count += 1
-    if count > 12:
-        led.value(count%2)
-"""
+if not wf.isconnected():
+    print('connecting to network...')
+    wf.connect(WIFI_NAME, PASSWORD)
+    count = 0
+    while not wf.isconnected():
+        time.sleep(0.5)
+        count += 1
+        if count > 12:
+            led.value(count%2)
+
+print('network config:', wf.ifconfig())
 #creo el socket cliente, si la conexion es exitosa enciende el led por 3 seg
 s = socket.socket()
 while True:
@@ -160,17 +170,25 @@ while True:
         time.sleep(0.5)
         continue
     break
-"""
+time.sleep(1)
+s.send("hola".encode())
 led.on()
+time.sleep(1)
+s.send("sabado".encode())
+time.sleep(1)
+s.close()
+
 
 #creacion de los objetos para los sensores
-s_flama = m.ADC(m.Pin(PIN_SFLAMA))
-s_flama.atten(m.ADC.ATTN_11DB)
-s_humo = m.ADC(m.Pin(PIN_SHUMO))
+s_flama = m.Pin(PIN_SFLAMA, m.Pin.IN) 
+pin_s_humo = m.Pin(PIN_SHUMO) 
+s_humo = m.ADC(pin_s_humo)
 s_humo.atten(m.ADC.ATTN_11DB)
-s_temperatura = m.ADC(m.Pin(PIN_STEMPERATURA))
+pin_s_temperatura = m.Pin(PIN_STEMPERATURA)
+s_temperatura = m.ADC(pin_s_temperatura)
 s_temperatura.atten(m.ADC.ATTN_2_5DB)
-s_bateria = m.ADC(m.Pin(PIN_BATERIA))
+pin_s_bateria = m.Pin(PIN_BATERIA)
+s_bateria = m.ADC(pin_s_bateria)
 s_bateria.atten(m.ADC.ATTN_11DB)
 
 time.sleep(3)
@@ -179,12 +197,15 @@ led.off()
 estado = Estado()
 temperatura = Cola_Temperatura()
 
-while(True):
-    time.sleep(TIEMPO_PUB/2)
-    temperatura.medir()
-    time.sleep(TIEMPO_PUB/2)
+while True: 
+    #time.sleep(TIEMPO_PUB/2)
+    #temperatura.medir() 
+    #time.sleep(TIEMPO_PUB/2)
     temperatura.medir()
     medir_flama()
     medir_humo()
     medir_bateria()
     estado.verificar()
+    for i in range (10):
+        time.sleep(3)
+        print(i)
