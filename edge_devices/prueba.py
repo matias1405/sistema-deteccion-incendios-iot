@@ -204,7 +204,7 @@ while True:
     temperatura.medir()
     medir_flama()
     medir_humo()
-    medir_bateria()
+    print("hola")
     estado.verificar()
     for i in range (10):
         time.sleep(3)
