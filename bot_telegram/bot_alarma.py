@@ -163,29 +163,6 @@ def callback_dar_baja(update, context):
     print(context._chat_id_and_data[0])
     db.remove(context._chat_id_and_data[0])
 
-def verificacion_password(update, context):
-    if PASSWORD == update.message.text:
-        update.message.reply_text('Contraseña aceptada')
-        update.message.reply_text('Se enviará una alerta en caso de incendio')
-        chats_aceptados.append(update.message.chat.id)
-    else:
-        update.message.reply_text('Contraseña incorrecta')
-    return ConversationHandler.END
-
-def notificar():
-    aviso = 'Este es un aviso de INCENDIO, por favor contacta con las \
-    autoridades de emergencia.\nNro tel Bomberos: 105\nNro tel Policia \
-    101\n Por favor notifique por este medio al Sistema cuando la situacion\
-    de incendio alla terminado'
-    print('notificando...')
-    bot=Bot(_token)
-    button = InlineKeyboardButton(text = 'Incendio Terminado',
-                                  callback_data = 'incendio_terminado')
-    for id_acep in chats_aceptados:
-        bot.send_message(chat_id=id_acep,
-                         text=aviso,
-                         reply_markup = InlineKeyboardMarkup([[button]]))
-
 def connect_mqtt() -> mqtt_client:
     """
     Crea el objeto cliente y lo conecta al broker de mqtt.
