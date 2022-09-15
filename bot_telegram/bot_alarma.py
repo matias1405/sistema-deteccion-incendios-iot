@@ -23,17 +23,6 @@ from threading import Thread
 from time import sleep
 
 from paho.mqtt import client as mqtt_client
-<<<<<<< HEAD
-from telegram.ext import CommandHandler, Updater, ConversationHandler, CallbackQueryHandler, MessageHandler, Filters
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Bot
-import os
-import time
-
-#_token = os.environ['TOKEN']
-password = '1405'
-_token = "5129425944:AAE9qC_w4bvcXH-j6Zuf0Mb1Qf27KR7h4IM"
-input_text = 0
-=======
 from telegram.ext import(
     CommandHandler,
     Updater,
@@ -52,7 +41,6 @@ from telegram import(
 
 _token = environ['TOKEN'] #obtenemos el token de una varible de entorno
 PASSWORD = '1405'
->>>>>>> dev
 chats_aceptados = []
 lista_novedades = []
 BROKER = 'localhost'
