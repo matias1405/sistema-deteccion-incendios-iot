@@ -76,7 +76,7 @@ class Estado:
     """
     def __init__(self):
         self.lista_estado = [False, False, False]
-        self.estado_bateria = True
+        print('Aqui borre')
         self.suma = 0
 
     def temperatura(self, x):
