@@ -39,7 +39,8 @@ from telegram import(
 
 #=========== definicion de variables y constantes globales =====================
 
-_token = environ['TOKEN'] #obtenemos el token de una varible de entorno
+#_token = environ['TOKEN'] #obtenemos el token de una varible de entorno
+_token = "5129425944:AAE9qC_w4bvcXH-j6Zuf0Mb1Qf27KR7h4IM"
 PASSWORD = '1405'
 chats_aceptados = []
 lista_novedades = []
@@ -47,7 +48,7 @@ BROKER = 'localhost'
 PORT = 1883
 TOPIC_SUB = "s-alerta-incendio/estado"
 TOPIC_PUB = "s-alerta-incendio/novedades"
-HORA_PUB = "12:00:00"
+HORA_PUB = "22:05:00"
 
 #================ definicion de clases ===================================
 
@@ -65,7 +66,7 @@ class BaseDeDatos:
     def add(self, id):
         id = str(id) + "\n"
         if id not in self.chats_aceptados:
-            with open(self.path, 'r+t') as f:
+            with open(self.path, 'at') as f:
                 f.write(id)
             with open(self.path, 'rt') as f:
                 self.chats_aceptados = f.readlines()
@@ -263,6 +264,7 @@ def notificar_novedades():
 def revisar_hora():
     hora_pub = datetime.strptime(HORA_PUB, '%H:%M:%S')
     while(True):
+        print(datetime.now())
         if datetime.now().hour == hora_pub.hour:
             notificar_novedades()
             sleep(60*60*23)
