@@ -38,7 +38,7 @@ class Cola_Temperatura:
     """Pila de temperaturas en grados centigrados.
     lista_temp[0] es temperatura hace un minuto
     lista_temp[1] es temperatiura hace 30 segundos
-    lista_temp[1] es la temperatura actual
+    lista_temp[2] es la temperatura actual
     mide el cambio de temperatura en un minuto y la temperatura actual"""
     
     def __init__(self):
@@ -186,7 +186,7 @@ s_humo = m.ADC(pin_s_humo)
 s_humo.atten(m.ADC.ATTN_11DB)
 pin_s_temperatura = m.Pin(PIN_STEMPERATURA)
 s_temperatura = m.ADC(pin_s_temperatura)
-s_temperatura.atten(m.ADC.ATTN_2_5DB)
+s_temperatura.atten(m.ADC.ATTN_6DB)
 pin_s_bateria = m.Pin(PIN_BATERIA)
 s_bateria = m.ADC(pin_s_bateria)
 s_bateria.atten(m.ADC.ATTN_11DB)
