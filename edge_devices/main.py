@@ -17,12 +17,12 @@ import math
 ID_DISPOSITIVO = 1
 
 #Pines analogicos
-PIN_STEMPERATURA = 35
-PIN_SHUMO = 34
-PIN_SFLAMA = 22
-PIN_SBATERIA = 33
+PIN_STEMPERATURA = 35 #gpio 35 y pin nro 6 
+PIN_SHUMO = 34 #gpio 34 y pin nro 5 
+PIN_SFLAMA = 22 #gpio 22 y pin nro 36
+PIN_SBATERIA = 33  #en discusion si agregar el circuito o no
 #Pines digitales
-PIN_LED_VERDE = 2
+PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 
 WIFI_NAME = "WiFi-Arnet-6jbs"
 PASSWORD = "j3ygefpf"
