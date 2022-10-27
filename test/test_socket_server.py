@@ -14,6 +14,8 @@ s.bind((ip, 2020))
 print(ip)
 s.listen(1)
 (clientsocket, address) = s.accept()
+print(address)
+
 try:
     while True:
         data= clientsocket.recv(256)

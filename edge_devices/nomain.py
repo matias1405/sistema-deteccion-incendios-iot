@@ -46,16 +46,14 @@ class SensorTemperatura:
     Tambien mide el cambio de temperatura en un minuto y la temperatura actual
     """
     def __init__(self, n_pin):
-
-        self.pin_s_temperatura = m.ADC(m.Pin(n_pin, m.Pin.IN))
+        self.pin_s_temperatura = m.ADC(m.Pin(n_pin))
         self.pin_s_temperatura.atten(m.ADC.ATTN_6DB)
-        temp_inicial = self.pin_s_temperatura.read()* 3.3 / 4096
-        temp_inicial = temp_inicial*100
+        temp_inicial = self.pin_s_temperatura.read_uv()/10000
         self.lista_temp = [temp_inicial, temp_inicial, temp_inicial]
 
     def medir(self):
-        self.temp = self.pin_s_temperatura.read()* 3.3 / 4096 #valor en voltios
-        self.medir_cambio(self.temp*100)  #temperatura en °C
+        self.temp = self.pin_s_temperatura.read_uv() #valor en uvoltios
+        self.medir_cambio(self.temp/10000)  #temperatura en °C
 
     def add(self, temp):
         self.lista_temp.append(temp)
@@ -81,9 +79,9 @@ class SensorHumo:
     Mide la concentracion de humo en ppm
     """
     def __init__(self, n_pin):
-        self.pin_s_humo = m.ADC(m.Pin(n_pin, m.Pin.IN))
+        self.pin_s_humo = m.ADC(m.Pin(n_pin))
         self.pin_s_humo.atten(m.ADC.ATTN_11DB)
-        #self.calculos()
+        self.calculos()
         self.medir_humo()
 
     def calculos(self):
@@ -119,7 +117,7 @@ class Bateria:
     Mide el nivel de tension de la bateria e informa si es baja
     """
     def __init__(self, n_pin):
-        self.pin_s_bateria = m.ADC(m.Pin(n_pin, m.Pin.IN))
+        self.pin_s_bateria = m.ADC(m.Pin(n_pin))
         self.pin_s_bateria.atten(m.ADC.ATTN_11DB)
         self.medir_bateria()
 
@@ -219,21 +217,17 @@ print('network config:', wf.ifconfig())
 #creo el socket cliente, si la conexion es exitosa enciende el led por 3 seg
 s = socket.socket()
 
-led.on()
+
 while True:
     try:
         s.connect(ADDRS)
     except ConnectionRefusedError:
         time.sleep(0.5)
         continue
-    finally:
-        break
+    break
+
 
 time.sleep(3)
-led.off()
-time.sleep(1)
-led.on()
-time.sleep(1)
 led.off()
 
 estado = Estado()
@@ -243,20 +237,12 @@ s_temperatura = SensorTemperatura(PIN_STEMPERATURA)
 time.sleep(2)
 s_humo = SensorHumo(PIN_SHUMO)
 time.sleep(2)
-led.on()
-time.sleep(1)
-led.off()
-time.sleep(1)
-led.on()
-time.sleep(1)
-led.off()
 s_flama = SensorFlama(PIN_SFLAMA)
 time.sleep(2)
 s_bateria = Bateria(PIN_SBATERIA)
 time.sleep(2)
 
 while True:
-    led.on()
     time.sleep(30) 
     s_temperatura.medir()
     s_humo.medir_humo()
