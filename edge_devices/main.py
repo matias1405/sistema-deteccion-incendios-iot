@@ -48,14 +48,13 @@ class SensorTemperatura:
     def __init__(self, n_pin):
 
         self.pin_s_temperatura = m.ADC(m.Pin(n_pin, m.Pin.IN))
-        self.pin_s_temperatura.atten(m.ADC.ATTN_6DB)
-        temp_inicial = self.pin_s_temperatura.read()* 3.3 / 4096
-        temp_inicial = temp_inicial*100
+        self.pin_s_temperatura.atten(m.ADC.ATTN_2_5DB)
+        temp_inicial = self.pin_s_temperatura.read_uv()/10000
         self.lista_temp = [temp_inicial, temp_inicial, temp_inicial]
 
     def medir(self):
-        self.temp = self.pin_s_temperatura.read()* 3.3 / 4096 #valor en voltios
-        self.medir_cambio(self.temp*100)  #temperatura en °C
+        self.temp = self.pin_s_temperatura.read_uv()/10000
+        self.medir_cambio(self.temp)  #temperatura en °C
 
     def add(self, temp):
         self.lista_temp.append(temp)
@@ -83,19 +82,29 @@ class SensorHumo:
     def __init__(self, n_pin):
         self.pin_s_humo = m.ADC(m.Pin(n_pin, m.Pin.IN))
         self.pin_s_humo.atten(m.ADC.ATTN_11DB)
-        #self.calculos()
+        self.calculos()
         self.medir_humo()
 
     def calculos(self):
-        voltaje_i = self.pin_s_humo.read()
-        voltaje_i = voltaje_i * 3.3 / 4096
+        voltaje_i = self.pin_s_humo.read_uv()/1000000
+        #voltaje_i = voltaje_i * 3.3 / 4096
         self.R0 = 1000 * (5 - voltaje_i) / voltaje_i
         self.R0 = self.R0 / 9.7
         self.x1 = math.log10(200)
         self.y1 = math.log10(3.43)
+        x2 = math.log10(10000)
+        y2 = math.log10(0.61)
+        self.curva = (y2 - self.y1)/(x2 - self.x1)
+
     
     def medir_humo(self):
-        self.ppm = 250
+        voltaje_i = self.pin_s_humo.read_uv()/1000000
+        RS = 1000 * (5 - voltaje_i) / voltaje_i
+        ratio = RS/self.R0
+        exponente = (math.log10(ratio)-self.y1)/self.curva
+        exponente = exponente + self.x1
+        self.ppm = 10**exponente
+
 
 
 class SensorFlama:
