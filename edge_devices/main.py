@@ -54,7 +54,13 @@ class SensorTemperatura:
 
     def medir(self):
         self.temp = self.pin_s_temperatura.read_uv()/10000
-        self.medir_cambio(self.temp)  #temperatura en °C
+        time.sleep(1)
+        self.temp += self.pin_s_temperatura.read_uv()/10000
+        time.sleep(1)
+        self.temp += self.pin_s_temperatura.read_uv()/10000
+        self.medir_cambio(self.temp/3)  #temperatura en °C
+        
+
 
     def add(self, temp):
         self.lista_temp.append(temp)
@@ -73,7 +79,10 @@ class SensorTemperatura:
             estado.temperatura(True)
         else:
             estado.temperatura(False)
-
+        #prueba con read
+        #self.temp_analog = self.pin_s_temperatura.read()#* 3.3 / 4096
+        #max = 11.158*(self.temp_analog**(-0.274))
+        #xself.temp_analog= self.temp_analog/4095*max
 
 class SensorHumo:
     """
@@ -173,23 +182,23 @@ class Estado:
         self.notificar()
 
     def notificar(self):
-        string_temperatura_0 = f'temperatura_0: {s_temperatura.lista_temp[0]}'
+        string_temperatura_0 = f'temperatura_0_uv: {s_temperatura.lista_temp[0]:.2f}'
         s.send(string_temperatura_0.encode())
         time.sleep(1)
-        string_temperatura_1 = f'temperatura_1: {s_temperatura.lista_temp[1]}'
+        string_temperatura_1 = f'temperatura_1_uv: {s_temperatura.lista_temp[1]:.2f}'
         s.send(string_temperatura_1.encode())
         time.sleep(1)
-        string_temperatura_2 = f'temperatura_2: {s_temperatura.lista_temp[2]}'
+        string_temperatura_2 = f'temperatura_2_uv: {s_temperatura.lista_temp[2]:.2f}'
         s.send(string_temperatura_2.encode())
         time.sleep(1)
-        string_humo = f'humo: {s_humo.ppm}'
+        string_humo = f'ppm de humo en el aire: {s_humo.ppm:.2f}'
         s.send(string_humo.encode())
         time.sleep(1)
-        string_flama = f'presencia de flama: {s_flama.presencia_flama}'
+        string_flama = f'presencia de flama: {estado.lista_estado[1]}'
         s.send(string_flama.encode())
-        time.sleep(1)
-        string_bateria = f'bateria: {s_bateria.tension_bateria}'
-        s.send(string_bateria.encode())
+        #time.sleep(1)
+        #string_bateria = f'bateria: {s_bateria.tension_bateria}'
+        #s.send(string_bateria.encode())
         #print(self.lista_estado)
         #print(self.estado_bateria)
 
@@ -232,12 +241,14 @@ led.on()
 while True:
     try:
         s.connect(ADDRS)
+        
     except ConnectionRefusedError:
-        time.sleep(0.5)
+        time.sleep_ms(500)
         continue
     finally:
         break
 
+print("Socket Conectado")
 time.sleep(3)
 led.off()
 time.sleep(1)
@@ -266,12 +277,12 @@ time.sleep(2)
 
 while True:
     led.on()
-    time.sleep(30) 
+    time.sleep(20) 
     s_temperatura.medir()
     s_humo.medir_humo()
     s_flama.medir_flama()
     s_bateria.medir_bateria()
-    time.sleep(30)
+    time.sleep(20)
     s_temperatura.medir()
     estado.verificar()
 

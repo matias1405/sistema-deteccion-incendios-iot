@@ -19,10 +19,13 @@ print(address)
 try:
     while True:
         data= clientsocket.recv(256)
-        if len(data.decode()) > 0:
-            print(data.decode())
+        data = data.decode()
+        if len(data) > 0:
+            print(data)
         if data == "sabado":
             break
+        if "flama" in data: 
+            print("--------------------------------------------------------------------")
 
 finally: 
     clientsocket.close()
