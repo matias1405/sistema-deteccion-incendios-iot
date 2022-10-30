@@ -26,8 +26,8 @@ PIN_SBATERIA = 33  #en discusion si agregar el circuito o no
 #Pines digitales
 PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 
-WIFI_NAME = "WiFi-Arnet-6jbs"
-PASSWORD = "j3ygefpf"
+WIFI_NAME = "ESP32-AP"
+PASSWORD = "changeit"
 ADDRS = ('192.168.1.19', 2020)
 
 TIEMPO_PUB = 60
@@ -234,10 +234,12 @@ if not wf.isconnected():
             led.value(count%2)
 
 print('network config:', wf.ifconfig())
-#creo el socket cliente, si la conexion es exitosa enciende el led por 3 seg
+#creo el socket cliente
 s = socket.socket()
 
 led.on()
+time.sleep(1)
+
 while True:
     try:
         s.connect(ADDRS)
@@ -246,37 +248,24 @@ while True:
         time.sleep_ms(500)
         continue
     finally:
+        s.close()
         break
 
-print("Socket Conectado")
-time.sleep(3)
-led.off()
-time.sleep(1)
-led.on()
-time.sleep(1)
 led.off()
 
 estado = Estado()
 
 #creacion de los objetos para los sensores
 s_temperatura = SensorTemperatura(PIN_STEMPERATURA)
-time.sleep(2)
+time.sleep(1)
 s_humo = SensorHumo(PIN_SHUMO)
-time.sleep(2)
-led.on()
 time.sleep(1)
-led.off()
-time.sleep(1)
-led.on()
-time.sleep(1)
-led.off()
 s_flama = SensorFlama(PIN_SFLAMA)
-time.sleep(2)
+time.sleep(1)
 s_bateria = Bateria(PIN_SBATERIA)
-time.sleep(2)
+led.on()
 
 while True:
-    led.on()
     time.sleep(20) 
     s_temperatura.medir()
     s_humo.medir_humo()
