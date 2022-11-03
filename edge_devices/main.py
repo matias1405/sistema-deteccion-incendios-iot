@@ -28,8 +28,7 @@ PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 
 WIFI_NAME = "MOVISTAR WIFI2276"
 PASSWORD = "romi1234"
-ADDRS = ('192.168.1.19', 2020)
-
+ADDRS = ('192.168.105.103', 2020)
 TIEMPO_PUB = 6
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
@@ -182,13 +181,13 @@ class Estado:
         self.notificar()
 
     def notificar(self):
-        string_temperatura_0 = f'temperatura_0_uv: {s_temperatura.lista_temp[0]:.2f}'
+        string_temperatura_0 = f'temperatura_0: {s_temperatura.lista_temp[0]:.2f}'
         s.send(string_temperatura_0.encode())
         time.sleep(1)
-        string_temperatura_1 = f'temperatura_1_uv: {s_temperatura.lista_temp[1]:.2f}'
+        string_temperatura_1 = f'temperatura_1: {s_temperatura.lista_temp[1]:.2f}'
         s.send(string_temperatura_1.encode())
         time.sleep(1)
-        string_temperatura_2 = f'temperatura_2_uv: {s_temperatura.lista_temp[2]:.2f}'
+        string_temperatura_2 = f'temperatura_2: {s_temperatura.lista_temp[2]:.2f}'
         s.send(string_temperatura_2.encode())
         time.sleep(1)
         string_humo = f'ppm de humo en el aire: {s_humo.ppm:.2f}'

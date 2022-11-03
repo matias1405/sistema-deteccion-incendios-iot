@@ -8,8 +8,8 @@ def getIp():
     return ip
 
 ip = getIp()
-print("primera ip conseguida", ip)
-ip = '192.168.145.14'
+#print("primera ip conseguida", ip)
+#ip = '192.168.105.103'
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((ip, 2020))
