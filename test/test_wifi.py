@@ -3,18 +3,21 @@
 import machine as m
 import network
 import time
+import socket
 
 PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 
 
-WIFI_NAME = "WiFi-Arnet-6jbs"
-PASSWORD = "j3ygefpf"
-ADDRS = ('192.168.1.19', 2020)
+WIFI_NAME = "moto g9 play"
+PASSWORD = "12345679"
+ADDRS = ('192.168.145.14', 2020)
 
 led = m.Pin(PIN_LED_VERDE, m.Pin.OUT)
 led.off()
 
 wf = network.WLAN(network.STA_IF)
+wf.active(False)
+time.sleep(1)
 wf.active(True)
 if not wf.isconnected():
     print('connecting to network...')
@@ -29,3 +32,14 @@ if not wf.isconnected():
             print('tambien llegue aqui')
 
 print('network config:', wf.ifconfig())
+
+s = socket.socket()
+s.connect(ADDRS)
+print("me conecte")
+
+while True:
+    s.send("hola".encode())
+    print("hola")
+    time.sleep(2)
+
+
