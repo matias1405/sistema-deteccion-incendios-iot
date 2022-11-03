@@ -26,11 +26,11 @@ PIN_SBATERIA = 33  #en discusion si agregar el circuito o no
 #Pines digitales
 PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 
-WIFI_NAME = "ESP32-AP"
-PASSWORD = "changeit"
+WIFI_NAME = "MOVISTAR WIFI2276"
+PASSWORD = "romi1234"
 ADDRS = ('192.168.1.19', 2020)
 
-TIEMPO_PUB = 60
+TIEMPO_PUB = 6
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
 TENSION_BATERIA_MIN = 3.1
@@ -222,6 +222,8 @@ led.off()
 #parpadear
 
 wf = network.WLAN(network.STA_IF)
+wf.active(False)
+time.sleep(1)
 wf.active(True)
 if not wf.isconnected():
     print('connecting to network...')
@@ -240,16 +242,7 @@ s = socket.socket()
 led.on()
 time.sleep(1)
 
-while True:
-    try:
-        s.connect(ADDRS)
-        
-    except ConnectionRefusedError:
-        time.sleep_ms(500)
-        continue
-    finally:
-        s.close()
-        break
+s.connect(ADDRS)
 
 led.off()
 
@@ -258,20 +251,24 @@ estado = Estado()
 #creacion de los objetos para los sensores
 s_temperatura = SensorTemperatura(PIN_STEMPERATURA)
 time.sleep(1)
+print("sensor de temperatura creado")
 s_humo = SensorHumo(PIN_SHUMO)
 time.sleep(1)
 s_flama = SensorFlama(PIN_SFLAMA)
 time.sleep(1)
 s_bateria = Bateria(PIN_SBATERIA)
+print("sensor de bateria creado")
 led.on()
 
 while True:
-    time.sleep(20) 
+    print(".")
+    time.sleep(TIEMPO_PUB/2) 
     s_temperatura.medir()
     s_humo.medir_humo()
     s_flama.medir_flama()
     s_bateria.medir_bateria()
-    time.sleep(20)
+    print(".")
+    time.sleep(TIEMPO_PUB/2)
     s_temperatura.medir()
     estado.verificar()
 
