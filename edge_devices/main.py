@@ -26,9 +26,9 @@ PIN_SBATERIA = 33  #en discusion si agregar el circuito o no
 #Pines digitales
 PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 
-WIFI_NAME = "MOVISTAR WIFI2276"
-PASSWORD = "romi1234"
-ADDRS = ('192.168.105.103', 2020)
+WIFI_NAME = "ESP32-AP"
+PASSWORD = "changeit"
+ADDRS = ('192.168.4.1', 2020)
 TIEMPO_PUB = 6
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
