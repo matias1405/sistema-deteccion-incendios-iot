@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 # Universidad Tecnológica Nacional - Facultad Regional Tucumán
 # Proyecto Final de grado
 # Sistema de Alarma contra Incendios basado en Tecnologías de IoT
@@ -13,6 +10,7 @@ import network
 import socket
 import time
 import math
+import utime
 
 #=============== definicion de constantes ======================================
 
@@ -22,18 +20,16 @@ ID_DISPOSITIVO = 1
 PIN_STEMPERATURA = 35 #gpio 35 y pin nro 6 
 PIN_SHUMO = 34 #gpio 34 y pin nro 5 
 PIN_SFLAMA = 22 #gpio 22 y pin nro 36
-PIN_SBATERIA = 33  #en discusion si agregar el circuito o no
+
 #Pines digitales
 PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 
-WIFI_NAME = "WiFi-Arnet-6jbs"
-PASSWORD = "j3ygefpf"
-ADDRS = ('192.168.1.19', 2020)
-
-TIEMPO_PUB = 60
+SSID = "ESP32-AP"
+PASSWORD = "changeit"
+ADDRS = ('192.168.4.1', 2020)
+TIEMPO_PUB = 6
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
-TENSION_BATERIA_MIN = 3.1
 
 #============== definicion de clases ========================================
 
@@ -46,15 +42,19 @@ class SensorTemperatura:
     Tambien mide el cambio de temperatura en un minuto y la temperatura actual
     """
     def __init__(self, n_pin):
-        self.pin_s_temperatura = m.ADC(m.Pin(n_pin))
-        self.pin_s_temperatura.atten(m.ADC.ATTN_6DB)
+        self.pin_s_temperatura = m.ADC(m.Pin(n_pin, m.Pin.IN))
+        self.pin_s_temperatura.atten(m.ADC.ATTN_2_5DB)
         temp_inicial = self.pin_s_temperatura.read_uv()/10000
         self.lista_temp = [temp_inicial, temp_inicial, temp_inicial]
 
     def medir(self):
-        self.temp = self.pin_s_temperatura.read_uv() #valor en uvoltios
-        self.medir_cambio(self.temp/10000)  #temperatura en °C
-
+        self.temp = self.pin_s_temperatura.read_uv()/10000
+        time.sleep(1)
+        self.temp += self.pin_s_temperatura.read_uv()/10000
+        time.sleep(1)
+        self.temp += self.pin_s_temperatura.read_uv()/10000
+        self.medir_cambio(self.temp/3)  #temperatura en °C
+        
     def add(self, temp):
         self.lista_temp.append(temp)
 
@@ -72,28 +72,39 @@ class SensorTemperatura:
             estado.temperatura(True)
         else:
             estado.temperatura(False)
-
+        #prueba con read
+        #self.temp_analog = self.pin_s_temperatura.read()#* 3.3 / 4096
+        #max = 11.158*(self.temp_analog**(-0.274))
+        #xself.temp_analog= self.temp_analog/4095*max
 
 class SensorHumo:
     """
     Mide la concentracion de humo en ppm
     """
     def __init__(self, n_pin):
-        self.pin_s_humo = m.ADC(m.Pin(n_pin))
+        self.pin_s_humo = m.ADC(m.Pin(n_pin, m.Pin.IN))
         self.pin_s_humo.atten(m.ADC.ATTN_11DB)
         self.calculos()
         self.medir_humo()
 
     def calculos(self):
-        voltaje_i = self.pin_s_humo.read()
-        voltaje_i = voltaje_i * 3.3 / 4096
+        voltaje_i = self.pin_s_humo.read_uv()/1000000
+        #voltaje_i = voltaje_i * 3.3 / 4096
         self.R0 = 1000 * (5 - voltaje_i) / voltaje_i
         self.R0 = self.R0 / 9.7
         self.x1 = math.log10(200)
         self.y1 = math.log10(3.43)
+        x2 = math.log10(10000)
+        y2 = math.log10(0.61)
+        self.curva = (y2 - self.y1)/(x2 - self.x1)
     
     def medir_humo(self):
-        self.ppm = 250
+        voltaje_i = self.pin_s_humo.read_uv()/1000000
+        RS = 1000 * (5 - voltaje_i) / voltaje_i
+        ratio = RS/self.R0
+        exponente = (math.log10(ratio)-self.y1)/self.curva
+        exponente = exponente + self.x1
+        self.ppm = 10**exponente
 
 
 class SensorFlama:
@@ -112,33 +123,13 @@ class SensorFlama:
             estado.flama(True)
 
 
-class Bateria:
-    """
-    Mide el nivel de tension de la bateria e informa si es baja
-    """
-    def __init__(self, n_pin):
-        self.pin_s_bateria = m.ADC(m.Pin(n_pin))
-        self.pin_s_bateria.atten(m.ADC.ATTN_11DB)
-        self.medir_bateria()
-
-    def medir_bateria(self):
-        self.carga = self.pin_s_bateria.read()
-        self.tension_bateria = self.carga * 3.3 / 4096
-        if self.tension_bateria <= TENSION_BATERIA_MIN:
-            estado.bateria(False)
-        else:
-            estado.bateria(True)
-
-
 class Estado:
     """
     almacena dos lista: la primera almacena el estado dado por los ssensores
     de temperatura, flama y humo.
-    la segunda lista almacena el estado de la bateria. 
     """
     def __init__(self):
         self.lista_estado = [False, False, False]
-        self.estado_bateria = True
         self.suma = 0
 
     def temperatura(self, x):
@@ -149,106 +140,80 @@ class Estado:
 
     def humo(self, x):
         self.lista_estado[2] = x
-
-    def bateria(self, x):
-        self.estado_bateria = x
     
     def verificar(self):
         self.suma = sum(self.lista_estado)
         if self.suma >= 2:
             incendio()
-        if not self.estado_bateria:
-            bateria_baja()
         self.notificar()
 
     def notificar(self):
-        string_temperatura_0 = f'temperatura_0: {s_temperatura.lista_temp[0]}'
+        string_temperatura_0 = f'temperatura_0: {s_temperatura.lista_temp[0]:.2f}'
         s.send(string_temperatura_0.encode())
         time.sleep(1)
-        string_temperatura_1 = f'temperatura_1: {s_temperatura.lista_temp[1]}'
+        string_temperatura_1 = f'temperatura_1: {s_temperatura.lista_temp[1]:.2f}'
         s.send(string_temperatura_1.encode())
         time.sleep(1)
-        string_temperatura_2 = f'temperatura_2: {s_temperatura.lista_temp[2]}'
+        string_temperatura_2 = f'temperatura_2: {s_temperatura.lista_temp[2]:.2f}'
         s.send(string_temperatura_2.encode())
         time.sleep(1)
-        string_humo = f'humo: {s_humo.ppm}'
+        string_humo = f'ppm de humo en el aire: {s_humo.ppm:.2f}'
         s.send(string_humo.encode())
         time.sleep(1)
-        string_flama = f'presencia de flama: {s_flama.presencia_flama}'
+        string_flama = f'presencia de flama: {estado.lista_estado[1]}'
         s.send(string_flama.encode())
-        time.sleep(1)
-        string_bateria = f'bateria: {s_bateria.tension_bateria}'
-        s.send(string_bateria.encode())
-        #print(self.lista_estado)
-        #print(self.estado_bateria)
-
-#============== definicion de funciones ========================================
-
-def incendio():
-    pass
-
-
-def bateria_baja():
-    pass
-
-
+        
 #============== inicio del programa ============================================
 
-#creacion del objeto led
-led = m.Pin(PIN_LED_VERDE, m.Pin.OUT)
-led.off()
-
-#conexion al wifi, si no hay conexion despues de 6 segundos empieza el led a
-#parpadear
-
-wf = network.WLAN(network.STA_IF)
-wf.active(True)
-if not wf.isconnected():
-    print('connecting to network...')
-    wf.connect(WIFI_NAME, PASSWORD)
-    count = 0
-    while not wf.isconnected():
-        time.sleep(0.5)
-        count += 1
-        if count > 12:
-            led.value(count%2)
-
-print('network config:', wf.ifconfig())
-#creo el socket cliente, si la conexion es exitosa enciende el led por 3 seg
-s = socket.socket()
-
-
-while True:
-    try:
-        s.connect(ADDRS)
-    except ConnectionRefusedError:
-        time.sleep(0.5)
-        continue
-    break
-
-
-time.sleep(3)
-led.off()
-
 estado = Estado()
-
 #creacion de los objetos para los sensores
-s_temperatura = SensorTemperatura(PIN_STEMPERATURA)
-time.sleep(2)
-s_humo = SensorHumo(PIN_SHUMO)
-time.sleep(2)
-s_flama = SensorFlama(PIN_SFLAMA)
-time.sleep(2)
-s_bateria = Bateria(PIN_SBATERIA)
-time.sleep(2)
+lm35 = SensorTemperatura(PIN_STEMPERATURA)
+mq2 = SensorHumo(PIN_SHUMO)
+ky027 = SensorFlama(PIN_SFLAMA)
+
+sta_if = network.WLAN(network.STA_IF)
+sta_if.active(True)
+sta_if.connect(SSID, PASSWORD)
+
+# Espera a que se establezca la conexión WiFi
+tiempo_inicial = utime.time()
+while not sta_if.isconnected() and utime.time() - tiempo_inicial < 10:
+    pass
+
+# Si no se logra conectar, se desactiva el modo WiFi
+if not sta_if.isconnected():
+    print('No se pudo conectar al WiFi')
+    sta_if.active(False)
+
+print('network config:', sta_if.ifconfig())
+
+uart = m.UART(0, 115200)
+
+# Conexión con el servidor
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.connect(ADDRS)
+
+    while True:
+        try:
+            pass
+        except Exception as e:
+            print(e)
+        
+
+    
+
+
+
+
 
 while True:
-    time.sleep(30) 
+    print(".")
+    time.sleep(TIEMPO_PUB/2) 
     s_temperatura.medir()
     s_humo.medir_humo()
     s_flama.medir_flama()
-    s_bateria.medir_bateria()
-    time.sleep(30)
+    print(".")
+    time.sleep(TIEMPO_PUB/2)
     s_temperatura.medir()
     estado.verificar()
 
