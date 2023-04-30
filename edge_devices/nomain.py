@@ -24,12 +24,15 @@ PIN_SFLAMA = 22 #gpio 22 y pin nro 36
 #Pines digitales
 PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 
-SSID = "ESP32-AP"
-PASSWORD = "changeit"
-ADDRS = ('192.168.4.1', 2020)
-TIEMPO_PUB = 6
+SSID = "ALFARO"
+PASSWORD = "MATIAS64P13"
+ADDRS = ('192.168.56.1', 2020)
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
+
+STOP_FLAG = False
+
+TIMEOUT = 30
 
 #============== definicion de clases ========================================
 
@@ -116,10 +119,12 @@ class SensorFlama:
         self.presencia_flama = False
 
     def medir_flama(self):
-        self.presencia_flama = self.pin_s_flama.value()
-        if(self.presencia_flama == 1):
+        valor = self.pin_s_flama.value()
+        if(valor == 1):
+            self.presencia_flama = False
             estado.flama(False)
         else:
+            self.presencia_flama = True
             estado.flama(True)
 
 
@@ -130,7 +135,6 @@ class Estado:
     """
     def __init__(self):
         self.lista_estado = [False, False, False]
-        self.suma = 0
 
     def temperatura(self, x):
         self.lista_estado[0] = x
@@ -141,43 +145,98 @@ class Estado:
     def humo(self, x):
         self.lista_estado[2] = x
     
-    def verificar(self):
-        self.suma = sum(self.lista_estado)
-        if self.suma >= 2:
-            incendio()
-        self.notificar()
-
-    def notificar(self):
-        string_temperatura_0 = f'temperatura_0: {s_temperatura.lista_temp[0]:.2f}'
-        s.send(string_temperatura_0.encode())
-        time.sleep(1)
-        string_temperatura_1 = f'temperatura_1: {s_temperatura.lista_temp[1]:.2f}'
-        s.send(string_temperatura_1.encode())
-        time.sleep(1)
-        string_temperatura_2 = f'temperatura_2: {s_temperatura.lista_temp[2]:.2f}'
-        s.send(string_temperatura_2.encode())
-        time.sleep(1)
-        string_humo = f'ppm de humo en el aire: {s_humo.ppm:.2f}'
-        s.send(string_humo.encode())
-        time.sleep(1)
-        string_flama = f'presencia de flama: {estado.lista_estado[1]}'
-        s.send(string_flama.encode())
+    def evaluar(self):
+        return sum(self.lista_estado)
         
+
+#============== palabra clave salir ============================================
+
+def verificacion_salir():
+    if uart.any():
+        command = uart.readline().strip()
+        if command == b"STOP":
+            uart.write(b'saliendo...')
+            STOP_FLAG = True
+
+
+def modo_incendio():
+    TIEMPO_PUB = 30
+    while True:
+        time.sleep(TIEMPO_PUB/2) 
+        lm35.medir()
+        mq2.medir_humo()
+        ky026.medir_flama()
+        time.sleep(TIEMPO_PUB/2)
+        lm35.medir()
+        s.connect(ADDRS)
+        notificar_temp()
+        notificar_humo()
+        notificar_flama()
+        cadena = "OK"
+        s.sendall(cadena.encode())
+        tiempo_inicial = utime.time()
+        while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
+            time.sleep_ms(100)
+            pass
+        s.close
+        #verificacion de aviso de fin de incendio
+        if uart.any():
+            command = uart.readline().strip()
+            if command == b"FININCENDIO":
+                uart.write(b'incendio terminado...')
+                return
+        verificacion_salir()
+        if STOP_FLAG:
+            return
+
+
+def notificar_temp(self):
+    cadena = f'te0: {lm35.lista_temp[0]:.2f}'
+    s.send(cadena.encode())
+    time.sleep(1)
+    cadena = f'te1: {lm35.lista_temp[1]:.2f}'
+    s.send(cadena.encode())
+    time.sleep(1)
+    cadena = f'te2: {lm35.lista_temp[2]:.2f}'
+    s.send(cadena.encode())
+    time.sleep(1)
+
+
+def notificar_humo(self):
+    cadena = f'ppm: {mq2.ppm:.2f}'
+    s.send(cadena.encode())
+    time.sleep(1)
+
+
+def notificar_flama(self):
+    cadena = f'pdf: {ky026.presencia_flama}'
+    s.send(cadena.encode())
+    time.sleep(1)
+
 #============== inicio del programa ============================================
+
 
 estado = Estado()
 #creacion de los objetos para los sensores
 lm35 = SensorTemperatura(PIN_STEMPERATURA)
+print("sensor temp creado")
 mq2 = SensorHumo(PIN_SHUMO)
-ky027 = SensorFlama(PIN_SFLAMA)
+ky026 = SensorFlama(PIN_SFLAMA)
+print("sensores creados")
 
 sta_if = network.WLAN(network.STA_IF)
+time.sleep(2)
+sta_if.active(False)
+time.sleep(2)
 sta_if.active(True)
+time.sleep(2)
 sta_if.connect(SSID, PASSWORD)
 
 # Espera a que se establezca la conexión WiFi
 tiempo_inicial = utime.time()
 while not sta_if.isconnected() and utime.time() - tiempo_inicial < 10:
+    print(".")
+    time.sleep_ms(100)
     pass
 
 # Si no se logra conectar, se desactiva el modo WiFi
@@ -191,30 +250,51 @@ uart = m.UART(0, 115200)
 
 # Conexión con el servidor
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect(ADDRS)
-
     while True:
+        TIEMPO_PUB = 8
         try:
-            pass
+            time.sleep(TIEMPO_PUB/2) 
+            lm35.medir()
+            mq2.medir_humo()
+            ky026.medir_flama()
+            time.sleep(TIEMPO_PUB/2)
+            lm35.medir()
+            print("te0: ", lm35.lista_temp[0])
+            print("te1: ", lm35.lista_temp[1])
+            print("te2: ", lm35.lista_temp[2])
+            print("ppm: ", mq2.ppm)
+            print("pdf: ", ky026.presencia_flama)
+            print("=============================")
+            if estado.evaluar() >= 2:
+                #notificar incendio y entrar al modo incendio
+                s.connect(ADDRS)
+                cadena = "INCENDIO"
+                s.sendall(cadena.encode())
+                tiempo_inicial = utime.time()
+                while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
+                    time.sleep_ms(100)
+                    pass
+                s.close()
+                modo_incendio()
+            elif estado.evaluar() == 1:
+                #notificar advertencia
+                s.connect(ADDRS)
+                cadena = "ADVERTENCIA"
+                s.sendall(cadena.encode())
+                while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
+                    time.sleep_ms(100)
+                    pass
+                for i in range(3):
+                    if estado.lista_estado[i] == True and i == 0:
+                        notificar_temp()
+                    elif estado.lista_estado[i] == True and i == 1:
+                        notificar_humo()
+                    else:
+                        notificar_flama()
+                s.close()
+            verificacion_salir()
+            if STOP_FLAG:
+                break
+
         except Exception as e:
             print(e)
-        
-
-    
-
-
-
-
-
-while True:
-    print(".")
-    time.sleep(TIEMPO_PUB/2) 
-    s_temperatura.medir()
-    s_humo.medir_humo()
-    s_flama.medir_flama()
-    print(".")
-    time.sleep(TIEMPO_PUB/2)
-    s_temperatura.medir()
-    estado.verificar()
-
-

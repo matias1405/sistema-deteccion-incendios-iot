@@ -14,21 +14,27 @@ ip = getIp()
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((ip, 2020))
 print(ip)
-s.listen(1)
+s.listen(10)
 (clientsocket, address) = s.accept()
 print(address)
 
-try:
-    while True:
-        data= clientsocket.recv(256)
+while True:
+    try:   
+        data = clientsocket.recv(256)
         data = data.decode()
         if len(data) > 0:
             print(data)
-        if data == "sabado":
-            break
-        if "flama" in data: 
-            print("--------------------------------------------------------------------")
-
-finally: 
-    clientsocket.close()
-    s.close()      
+        if data == "INCENDIO":
+            cadena = "OK"
+            clientsocket.send(cadena.encode())
+            print("alerta incendio recibida")
+        elif data == "ADVERTENCIA":
+            cadena = "OK"
+            clientsocket.send(cadena.encode())
+            print("advertencia recibida")
+        elif data == "OK":
+            cadena = "OK"
+            clientsocket.send(cadena.encode())
+    finally: 
+        clientsocket.close()
+        s.close()      

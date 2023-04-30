@@ -10,6 +10,7 @@ enable = m.Pin(15, m.Pin.OUT)
 enable.on()
 time.sleep(1)
 print("inciando...")
+#uart=m.UART(1, baudrate=115200)
 u6 = m.UART(1, baudrate=115200, rx=PIN_RX_A6, tx=PIN_TX_A6)
 time.sleep(1)
 print("...")
@@ -43,16 +44,20 @@ send_at_command("AT+CIFSR")
 time.sleep(6)
 
 
-send_at_command("AT+CIPSTART=\"TCP\",\"www.prometec.net\",80")
+send_at_command("AT+CIPSTART=\"TCP\",\"www.google.com\",80")
 time.sleep(3)
-str_len=len("GET / HTTP/1.1\r\nHost: www.prometec.net\r\nConnection: close\r\n\r\n")
-#cadena = "AT+CIPSEND=" + str(str_len)
+str_len=len("GET / HTTP/1.1\r\nHost: www.google.com\r\nConnection: close\r\n\r\n")
+cadena = "AT+CIPSEND=" + str(str_len) + "\r\n"
 send_at_command2("AT+CIPSEND\r\n")
 time.sleep(3)
-send_at_command2("GET / HTTP/1.1\r\nHost: www.prometec.net\r\nConnection: close\r\n\r\n")
+send_at_command2("GET / HTTP/1.1\r\nHost: www.google.com\r\nConnection: close\r\n\r\n")
 time.sleep(3)
 
 send_at_command("AT+CIPCLOSE")
 time.sleep(3)
 send_at_command("AT+CIPSHUT")
 time.sleep(3)
+
+#asyncmqqtclient libreria
+#pushingbox
+#node red
