@@ -17,12 +17,14 @@ import utime
 ID_DISPOSITIVO = 1
 
 #Pines analogicos
-PIN_STEMPERATURA = 35 #gpio 35 y pin nro 6 
-PIN_SHUMO = 34 #gpio 34 y pin nro 5 
-PIN_SFLAMA = 22 #gpio 22 y pin nro 36
+PIN_STEMPERATURA = 13 #gpio 13 y pin nro 15 #cambiar por wifi
+PIN_SHUMO = 32 #gpio 32 y pin nro 7 
+PIN_SFLAMA = 8 #gpio 8 y pin nro 22
 
 #Pines digitales
 PIN_LED_VERDE = 2 #led integrado en la placa del esp32
+PIN_LED_ROJO = 6 #led indicador
+PIN_BUZZER = 14 #gpio 14 y pin nro 12
 
 SSID = "ALFARO"
 PASSWORD = "MATIAS64P13"
@@ -162,10 +164,12 @@ def verificacion_salir():
 def modo_incendio():
     TIEMPO_PUB = 30
     while True:
+        buzzer.on()
         time.sleep(TIEMPO_PUB/2) 
         lm35.medir()
         mq2.medir_humo()
         ky026.medir_flama()
+        buzzer.off()
         time.sleep(TIEMPO_PUB/2)
         lm35.medir()
         s.connect(ADDRS)
@@ -215,7 +219,10 @@ def notificar_flama(self):
 
 #============== inicio del programa ============================================
 
-
+led = m.Pin(PIN_LED_ROJO, m.Pin.OUT)
+led.off()
+buzzer = m.Pin(PIN_BUZZER, m.Pin.OUT)
+buzzer.off()
 estado = Estado()
 #creacion de los objetos para los sensores
 lm35 = SensorTemperatura(PIN_STEMPERATURA)
@@ -223,6 +230,8 @@ print("sensor temp creado")
 mq2 = SensorHumo(PIN_SHUMO)
 ky026 = SensorFlama(PIN_SFLAMA)
 print("sensores creados")
+led.on()
+buzzer.on()
 
 sta_if = network.WLAN(network.STA_IF)
 time.sleep(2)
@@ -245,6 +254,8 @@ if not sta_if.isconnected():
     sta_if.active(False)
 
 print('network config:', sta_if.ifconfig())
+led.off()
+buzzer.off()
 
 uart = m.UART(0, 115200)
 
