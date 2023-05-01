@@ -18,8 +18,9 @@ s.listen(10)
 (clientsocket, address) = s.accept()
 print(address)
 
-while True:
-    try:   
+
+try:
+    while True:   
         data = clientsocket.recv(256)
         data = data.decode()
         if len(data) > 0:
@@ -35,6 +36,6 @@ while True:
         elif data == "OK":
             cadena = "OK"
             clientsocket.send(cadena.encode())
-    finally: 
-        clientsocket.close()
-        s.close()      
+finally: 
+    clientsocket.close()
+    s.close()      
