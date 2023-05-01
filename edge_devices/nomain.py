@@ -8,7 +8,6 @@
 import machine as m
 import network
 import socket
-import time
 import math
 import utime
 
@@ -54,9 +53,9 @@ class SensorTemperatura:
 
     def medir(self):
         self.temp = self.pin_s_temperatura.read_uv()/10000
-        time.sleep(1)
+        utime.sleep(1)
         self.temp += self.pin_s_temperatura.read_uv()/10000
-        time.sleep(1)
+        utime.sleep(1)
         self.temp += self.pin_s_temperatura.read_uv()/10000
         self.medir_cambio(self.temp/3)  #temperatura en °C
         
@@ -165,12 +164,12 @@ def modo_incendio():
     TIEMPO_PUB = 30
     while True:
         buzzer.on()
-        time.sleep(TIEMPO_PUB/2) 
+        utime.sleep(TIEMPO_PUB/2) 
         lm35.medir()
         mq2.medir_humo()
         ky026.medir_flama()
         buzzer.off()
-        time.sleep(TIEMPO_PUB/2)
+        utime.sleep(TIEMPO_PUB/2)
         lm35.medir()
         s.connect(ADDRS)
         notificar_temp()
@@ -180,7 +179,7 @@ def modo_incendio():
         s.sendall(cadena.encode())
         tiempo_inicial = utime.time()
         while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
-            time.sleep_ms(100)
+            utime.sleep_ms(100)
             pass
         s.close
         #verificacion de aviso de fin de incendio
@@ -197,25 +196,25 @@ def modo_incendio():
 def notificar_temp(self):
     cadena = f'te0: {lm35.lista_temp[0]:.2f}'
     s.send(cadena.encode())
-    time.sleep(1)
+    utime.sleep(1)
     cadena = f'te1: {lm35.lista_temp[1]:.2f}'
     s.send(cadena.encode())
-    time.sleep(1)
+    utime.sleep(1)
     cadena = f'te2: {lm35.lista_temp[2]:.2f}'
     s.send(cadena.encode())
-    time.sleep(1)
+    utime.sleep(1)
 
 
 def notificar_humo(self):
     cadena = f'ppm: {mq2.ppm:.2f}'
     s.send(cadena.encode())
-    time.sleep(1)
+    utime.sleep(1)
 
 
 def notificar_flama(self):
     cadena = f'pdf: {ky026.presencia_flama}'
     s.send(cadena.encode())
-    time.sleep(1)
+    utime.sleep(1)
 
 #============== inicio del programa ============================================
 
@@ -234,18 +233,18 @@ led.on()
 buzzer.on()
 
 sta_if = network.WLAN(network.STA_IF)
-time.sleep(2)
+utime.sleep(2)
 sta_if.active(False)
-time.sleep(2)
+utime.sleep(2)
 sta_if.active(True)
-time.sleep(2)
+utime.sleep(2)
 sta_if.connect(SSID, PASSWORD)
 
 # Espera a que se establezca la conexión WiFi
 tiempo_inicial = utime.time()
 while not sta_if.isconnected() and utime.time() - tiempo_inicial < 10:
     print(".")
-    time.sleep_ms(100)
+    utime.sleep_ms(100)
     pass
 
 # Si no se logra conectar, se desactiva el modo WiFi
@@ -264,11 +263,11 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 while True:
     TIEMPO_PUB = 8
     try:
-        time.sleep(TIEMPO_PUB/2) 
+        utime.sleep(TIEMPO_PUB/2) 
         lm35.medir()
         mq2.medir_humo()
         ky026.medir_flama()
-        time.sleep(TIEMPO_PUB/2)
+        utime.sleep(TIEMPO_PUB/2)
         lm35.medir()
         print("te0: ", lm35.lista_temp[0])
         print("te1: ", lm35.lista_temp[1])
@@ -283,7 +282,7 @@ while True:
             s.sendall(cadena.encode())
             tiempo_inicial = utime.time()
             while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
-                time.sleep_ms(100)
+                utime.sleep_ms(100)
                 pass
             s.close()
             modo_incendio()
@@ -293,7 +292,7 @@ while True:
             cadena = "ADVERTENCIA"
             s.sendall(cadena.encode())
             while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
-                time.sleep_ms(100)
+                utime.sleep_ms(100)
                 pass
             for i in range(3):
                 if estado.lista_estado[i] == True and i == 0:
