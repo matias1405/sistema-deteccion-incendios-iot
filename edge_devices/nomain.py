@@ -257,55 +257,55 @@ print('network config:', sta_if.ifconfig())
 led.off()
 buzzer.off()
 
-uart = m.UART(0, 115200)
+#uart = m.UART(0, 9600) #encender si ampy esta apagado
 
 # Conexión con el servidor
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    while True:
-        TIEMPO_PUB = 8
-        try:
-            time.sleep(TIEMPO_PUB/2) 
-            lm35.medir()
-            mq2.medir_humo()
-            ky026.medir_flama()
-            time.sleep(TIEMPO_PUB/2)
-            lm35.medir()
-            print("te0: ", lm35.lista_temp[0])
-            print("te1: ", lm35.lista_temp[1])
-            print("te2: ", lm35.lista_temp[2])
-            print("ppm: ", mq2.ppm)
-            print("pdf: ", ky026.presencia_flama)
-            print("=============================")
-            if estado.evaluar() >= 2:
-                #notificar incendio y entrar al modo incendio
-                s.connect(ADDRS)
-                cadena = "INCENDIO"
-                s.sendall(cadena.encode())
-                tiempo_inicial = utime.time()
-                while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
-                    time.sleep_ms(100)
-                    pass
-                s.close()
-                modo_incendio()
-            elif estado.evaluar() == 1:
-                #notificar advertencia
-                s.connect(ADDRS)
-                cadena = "ADVERTENCIA"
-                s.sendall(cadena.encode())
-                while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
-                    time.sleep_ms(100)
-                    pass
-                for i in range(3):
-                    if estado.lista_estado[i] == True and i == 0:
-                        notificar_temp()
-                    elif estado.lista_estado[i] == True and i == 1:
-                        notificar_humo()
-                    else:
-                        notificar_flama()
-                s.close()
-            verificacion_salir()
-            if STOP_FLAG:
-                break
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+while True:
+    TIEMPO_PUB = 8
+    try:
+        time.sleep(TIEMPO_PUB/2) 
+        lm35.medir()
+        mq2.medir_humo()
+        ky026.medir_flama()
+        time.sleep(TIEMPO_PUB/2)
+        lm35.medir()
+        print("te0: ", lm35.lista_temp[0])
+        print("te1: ", lm35.lista_temp[1])
+        print("te2: ", lm35.lista_temp[2])
+        print("ppm: ", mq2.ppm)
+        print("pdf: ", ky026.presencia_flama)
+        print("=============================")
+        if estado.evaluar() >= 2:
+            #notificar incendio y entrar al modo incendio
+            s.connect(ADDRS)
+            cadena = "INCENDIO"
+            s.sendall(cadena.encode())
+            tiempo_inicial = utime.time()
+            while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
+                time.sleep_ms(100)
+                pass
+            s.close()
+            modo_incendio()
+        elif estado.evaluar() == 1:
+            #notificar advertencia
+            s.connect(ADDRS)
+            cadena = "ADVERTENCIA"
+            s.sendall(cadena.encode())
+            while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
+                time.sleep_ms(100)
+                pass
+            for i in range(3):
+                if estado.lista_estado[i] == True and i == 0:
+                    notificar_temp()
+                elif estado.lista_estado[i] == True and i == 1:
+                    notificar_humo()
+                else:
+                    notificar_flama()
+            s.close()
+        #verificacion_salir() #encender si ampy esta apagado
+        if STOP_FLAG:
+            break
 
-        except Exception as e:
-            print(e)
+    except Exception as e:
+        print(e)
