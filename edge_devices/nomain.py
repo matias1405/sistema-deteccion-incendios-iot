@@ -16,13 +16,13 @@ import utime
 ID_DISPOSITIVO = 1
 
 #Pines analogicos
-PIN_STEMPERATURA = 13 #gpio 13 y pin nro 15 #cambiar por wifi
+PIN_STEMPERATURA = 39 #gpio 39 y pin nro 4 #cambiar por wifi 
 PIN_SHUMO = 32 #gpio 32 y pin nro 7 
-PIN_SFLAMA = 8 #gpio 8 y pin nro 22 #cambiar por embedded flash
+PIN_SFLAMA = 35 #gpio 8 y pin nro 22 #cambiar por embedded flash a gpio 35 pin 6
 
 #Pines digitales
 PIN_LED_VERDE = 2 #led integrado en la placa del esp32
-PIN_LED_ROJO = 6 #led indicador #cambiar por embedded flash
+PIN_LED_ROJO = 10 #led indicador #cambiar por embedded flash a gpio 10 pin 17
 PIN_BUZZER = 14 #gpio 14 y pin nro 12
 
 SSID = "ALFARO"
