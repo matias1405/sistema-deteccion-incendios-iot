@@ -25,9 +25,10 @@ PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 PIN_LED_ROJO = 10 #led indicador #cambiar por embedded flash a gpio 10 pin 17
 PIN_BUZZER = 14 #gpio 14 y pin nro 12
 
-SSID = "FBWAY-473372_2.4"
-PASSWORD = "qlWjQcTi"
-ADDRS = ('192.168.100.61', 2020)
+SSID = "ROMI-WIFI"
+PASSWORD = "meestresas"
+SERVER_IP = '192.168.4.1'
+PORT = 2020
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
 
@@ -242,12 +243,14 @@ buzzer.off()
 #uart = m.UART(0, 9600) #encender si ampy esta apagado
 
 # Conexión con el servidor
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect(ADDRS)
+s = socket.socket()
+addr = socket.getaddrinfo(SERVER_IP, PORT)[0][-1]
+
 
 while True:
     TIEMPO_PUB = 8
     try:
+        s.connect(addr)
         print("conectando..")
         utime.sleep(TIEMPO_PUB/2)
         lm35.medir()
