@@ -23,7 +23,7 @@ class Nodo:
             self.mod_dist = self.mod_dist - 0.01
         return round(random.uniform(0.99*t, 1.01*t), 2)
     
-    def publicar(self):
+    def publicar(self, client):
         msg = f'la temperatura en {self.name} es de {self.obtener_temp()} *C'
         print(msg)
         client.publish(self.name, msg)
