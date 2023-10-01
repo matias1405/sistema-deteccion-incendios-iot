@@ -25,7 +25,7 @@ class Nodo:
     
     def publicar(self, client):
         temp = self.obtener_temp()
-        msg = {"temperatura" : temp}
+        msg = "{temperatura :"+str(temp)+"}"
         print(f'la temperatura en {self.name} es de {temp} *C')
         client.publish(self.name, msg)
 
