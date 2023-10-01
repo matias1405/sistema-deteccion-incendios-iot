@@ -24,8 +24,9 @@ class Nodo:
         return round(random.uniform(0.99*t, 1.01*t), 2)
     
     def publicar(self, client):
-        msg = f'la temperatura en {self.name} es de {self.obtener_temp()} *C'
-        print(msg)
+        temp = self.obtener_temp()
+        msg = {"temperatura" : temp}
+        print(f'la temperatura en {self.name} es de {temp} *C')
         client.publish(self.name, msg)
 
 class Temperaturas:
