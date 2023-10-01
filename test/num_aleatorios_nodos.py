@@ -95,16 +95,18 @@ if inicio == True:
 
 client = connect_mqtt()
 #subscribe(client)
-client.loop_forever()
-
-while(True):
-    temperaturas.add(temp)
-    print("temperatura:", temp)
-    nodo2.publicar(client)
-    nodo3.publicar(client)
-    nodo4.publicar(client)
-    nodo5.publicar(client)
-    nodo6.publicar(client)
-    if(temp < 100):
-        temp = temp + TEMP_AUMENTO
-    time.sleep(5)
+client.loop_start()
+try:
+    while(True):
+        temperaturas.add(temp)
+        print("temperatura:", temp)
+        nodo2.publicar(client)
+        nodo3.publicar(client)
+        nodo4.publicar(client)
+        nodo5.publicar(client)
+        nodo6.publicar(client)
+        if(temp < 100):
+            temp = temp + TEMP_AUMENTO
+        time.sleep(5)
+finally:
+    client.loop_stop()
