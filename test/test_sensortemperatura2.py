@@ -8,7 +8,6 @@
 import machine as m
 import network
 import socket
-import time
 import math
 import utime
 
@@ -17,7 +16,7 @@ import utime
 ID_DISPOSITIVO = 1
 
 #Pines analogicos
-PIN_STEMPERATURA = 13 #gpio 13 y pin nro 15 #cambiar por wifi
+PIN_STEMPERATURA = 39 #gpio 13 y pin nro 15 #cambiar por wifi
 PIN_SHUMO = 32 #gpio 32 y pin nro 7 
 PIN_SFLAMA = 8 #gpio 8 y pin nro 22
 
@@ -26,9 +25,11 @@ PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 PIN_LED_ROJO = 6 #led indicador
 PIN_BUZZER = 14 #gpio 14 y pin nro 12
 
-SSID = "ALFARO"
-PASSWORD = "MATIAS64P13"
-ADDRS = ('192.168.56.1', 2020)
+SSID = "TeleCentro-7f93"
+PASSWORD = "MWYKRJYWKTMK"
+PORT = 2020
+SERVER_IP = '192.168.4.1'
+PORT = 2020
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
 
@@ -54,9 +55,9 @@ class SensorTemperatura:
 
     def medir(self):
         self.temp = self.pin_s_temperatura.read_uv()/10000
-        time.sleep(1)
+        utime.sleep(1)
         self.temp += self.pin_s_temperatura.read_uv()/10000
-        time.sleep(1)
+        utime.sleep(1)
         self.temp += self.pin_s_temperatura.read_uv()/10000
         self.medir_cambio(self.temp/3)  #temperatura en °C
         
@@ -161,66 +162,36 @@ def verificacion_salir():
             STOP_FLAG = True
 
 
-def modo_incendio():
-    TIEMPO_PUB = 30
-    while True:
-        buzzer.on()
-        time.sleep(TIEMPO_PUB/2) 
-        lm35.medir()
-        mq2.medir_humo()
-        ky026.medir_flama()
-        buzzer.off()
-        time.sleep(TIEMPO_PUB/2)
-        lm35.medir()
-        s.connect(ADDRS)
-        notificar_temp()
-        notificar_humo()
-        notificar_flama()
-        cadena = "OK"
-        s.sendall(cadena.encode())
-        tiempo_inicial = utime.time()
-        while not s.recv(1024).decode().strip() == 'OK' and utime.time() - tiempo_inicial < TIMEOUT:
-            time.sleep_ms(100)
-            pass
-        s.close
-        #verificacion de aviso de fin de incendio
-        if uart.any():
-            command = uart.readline().strip()
-            if command == b"FININCENDIO":
-                uart.write(b'incendio terminado...')
-                return
-        verificacion_salir()
-        if STOP_FLAG:
-            return
-
-
-def notificar_temp(self):
+def notificar_temp():
     cadena = f'te0: {lm35.lista_temp[0]:.2f}'
     s.send(cadena.encode())
-    time.sleep(1)
+    utime.sleep(1)
     cadena = f'te1: {lm35.lista_temp[1]:.2f}'
     s.send(cadena.encode())
-    time.sleep(1)
+    utime.sleep(1)
     cadena = f'te2: {lm35.lista_temp[2]:.2f}'
     s.send(cadena.encode())
-    time.sleep(1)
+    utime.sleep(1)
 
 
-def notificar_humo(self):
+def notificar_humo():
     cadena = f'ppm: {mq2.ppm:.2f}'
     s.send(cadena.encode())
-    time.sleep(1)
+    utime.sleep(1)
 
 
-def notificar_flama(self):
+def notificar_flama():
     cadena = f'pdf: {ky026.presencia_flama}'
     s.send(cadena.encode())
-    time.sleep(1)
+    utime.sleep(1)
+
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #====================================================================
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+buzzer = m.Pin(PIN_BUZZER, m.Pin.OUT)
+buzzer.off()
 
 estado = Estado()
 #creacion de los objetos para los sensores
@@ -228,18 +199,18 @@ lm35 = SensorTemperatura(PIN_STEMPERATURA)
 print("sensor temp creado")
 
 sta_if = network.WLAN(network.STA_IF)
-time.sleep(2)
+utime.sleep(2)
 sta_if.active(False)
-time.sleep(2)
+utime.sleep(2)
 sta_if.active(True)
-time.sleep(2)
+utime.sleep(2)
 sta_if.connect(SSID, PASSWORD)
 
 # Espera a que se establezca la conexión WiFi
 tiempo_inicial = utime.time()
 while not sta_if.isconnected() and utime.time() - tiempo_inicial < 10:
     print(".")
-    time.sleep_ms(100)
+    utime.sleep_ms(100)
     pass
 
 # Si no se logra conectar, se desactiva el modo WiFi
@@ -249,11 +220,20 @@ if not sta_if.isconnected():
 
 print('network config:', sta_if.ifconfig())
 
+#s = socket.socket()
+#addr = socket.getaddrinfo(SERVER_IP, PORT)[0][-1]
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#s.connect(addr)
+s.connect(('192.168.0.5', 2020))
+print("conectando..")
+utime.sleep(1)
 
-while True:
-    time.sleep(2)
-    lm35.medir()
-    print("te0: ", lm35.lista_temp[0])
-    print("te1: ", lm35.lista_temp[1])
-    print("te2: ", lm35.lista_temp[2])
-    print("=============================")
+try:
+    while True:
+        utime.sleep(2)
+        lm35.medir()
+        notificar_temp()
+        print("=============================")
+finally:
+    s.close()
+    print("programa terminado")

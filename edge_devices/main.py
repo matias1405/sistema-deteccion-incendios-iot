@@ -16,7 +16,7 @@ import utime
 ID_DISPOSITIVO = 1
 
 #Pines analogicos
-PIN_STEMPERATURA = 39 #gpio 39 y pin nro 4 #cambiar por wifi 
+PIN_STEMPERATURA = 39 #gpio 39 y pin nro 4 #cambiado
 PIN_SHUMO = 32 #gpio 32 y pin nro 7 
 PIN_SFLAMA = 35 #gpio 8 y pin nro 22 #cambiar por embedded flash a gpio 35 pin 6
 
@@ -25,9 +25,9 @@ PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 PIN_LED_ROJO = 10 #led indicador #cambiar por embedded flash a gpio 10 pin 17
 PIN_BUZZER = 14 #gpio 14 y pin nro 12
 
-SSID = "ROMI-WIFI"
-PASSWORD = "meestresas"
-SERVER_IP = '192.168.4.1'
+SSID = "ALFARO"
+PASSWORD = "MATIAS64P13"
+SERVER_IP = '192.168.100.10'
 PORT = 2020
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
@@ -186,8 +186,19 @@ def notificar_flama():
     utime.sleep(6)
     salir()
 
+def notificar():
+    if (lm35.lista_temp[2] > 30 and mq2.ppm > 500):
+        pdf = 1
+    else:
+        pdf = 0
+    cadena = f'humo={mq2.ppm:.2f}&temperatura={lm35.lista_temp[2]:.2f}&pdf={pdf}'
+    print(cadena)
+    s.send(cadena.encode())
+    utime.sleep(6)
+    salir()
+
 def salir():
-    cadena = s.recv(256).decode().strip()
+    cadena = s.recv(512).decode().strip()
     print(cadena)
     if cadena == 'OK':
         pass
@@ -243,30 +254,31 @@ buzzer.off()
 #uart = m.UART(0, 9600) #encender si ampy esta apagado
 
 # Conexión con el servidor
-s = socket.socket()
-addr = socket.getaddrinfo(SERVER_IP, PORT)[0][-1]
-
-
-while True:
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((SERVER_IP, PORT))
+print("conectando..")
+#while True:
+for i in range(10):
     TIEMPO_PUB = 8
     try:
-        s.connect(addr)
-        print("conectando..")
         utime.sleep(TIEMPO_PUB/2)
         lm35.medir()
-        notificar_temp() 
+        print("lm35 medido")
+        utime.sleep(2)
         mq2.medir_humo()
-        notificar_humo()
+        print("mq2 medido")
+        utime.sleep(2)
         ky026.medir_flama()
-        notificar_flama()
-        print("=============================")
+        notificar()
+        #ky026.medir_flama()
+        #notificar_flama()
         
     except Exception as e:
         print(e)
         
     if STOP_FLAG:
-            print("if para salir")
-            break
-    
+        print("if para salir")
+        break
+
 s.close()
 print("Programa terminado")

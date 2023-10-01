@@ -11,7 +11,7 @@ def getIp():
 
 ip = getIp()
 #print("primera ip conseguida", ip)
-ip = "192.168.100.61"
+ip = "192.168.0.7"
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((ip, 2020))
@@ -20,6 +20,7 @@ s.listen(10)
 
 while True: 
     COUNTER = 0
+    print("while")
     (clientsocket, address) = s.accept()
     print(address)  
     try:
