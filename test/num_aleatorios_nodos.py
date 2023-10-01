@@ -45,10 +45,10 @@ class Nodo:
     
     def publicar(self, client):
         temp = self.obtener_temp()
-        print(f'la temperatura en {self.name} es de {temp} *C')
+        #print(f'la temperatura en {self.name} es de {temp} *C')
         client.publish(self.t_topic, temp)
         humo = self.obtener_humo()
-        print(f'la cantidad de humo en {self.name} es de {humo} ppm')
+        #print(f'la cantidad de humo en {self.name} es de {humo} ppm')
         client.publish(self.h_topic, humo)
         if (self.t_lim < temp and self.h_lim < humo):
             client.publish(self.pdf_topic, "true")
@@ -122,9 +122,9 @@ client.loop_start()
 try:
     while(True):
         c_temperatura.add(temp)
-        print("temperatura:", temp)
+        #print("temperatura:", temp)
         c_humo.add(humo)
-        print("humo:", humo)
+        #print("humo:", humo)
         nodo2.publicar(client)
         time.sleep(1)
         nodo3.publicar(client)
