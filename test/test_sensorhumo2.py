@@ -26,8 +26,8 @@ PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 PIN_LED_ROJO = 6 #led indicador
 PIN_BUZZER = 14 #gpio 14 y pin nro 12
 
-SSID = "ALFARO"
-PASSWORD = "MATIAS64P13"
+SSID = "FBWAY-473372_2.4"
+PASSWORD = "qlWjQcTi"
 ADDRS = ('192.168.56.1', 2020)
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
@@ -251,7 +251,7 @@ print('network config:', sta_if.ifconfig())
 
 
 while True:
-    time.sleep(2)
+    time.sleep(1)
     mq2.medir_humo()
     print("ppm: ", mq2.ppm)
     print("=============================")

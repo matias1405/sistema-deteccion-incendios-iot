@@ -89,7 +89,7 @@ def subscribe(client: mqtt_client):
         mensaje = msg.payload.decode()
         print(f"Received '{mensaje}' from '{msg.topic}' topic")
 
-    client.subscribe("nodo1")
+    client.subscribe([("nodo-sensores/temperatura", 0), ("nodo-sensores/humo", 0), ("nodo-sensores/flama", 0)])
     client.on_message = on_message
 
 TEMP_LIMITE = 100
@@ -117,7 +117,7 @@ if inicio == True:
     inicio = False
 
 client = connect_mqtt()
-#subscribe(client)
+subscribe(client)
 client.loop_start()
 try:
     while(True):
@@ -138,6 +138,4 @@ try:
             temp = temp + TEMP_AUMENTO
         if(humo < 600000):
             humo = humo + HUMO_AUMENTO
-        time.sleep(5)
-finally:
-    client.loop_stop()
+        time.sleep(1)

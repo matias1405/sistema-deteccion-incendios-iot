@@ -211,6 +211,7 @@ def salir():
         print("parando programa...")
     else:
         print("dato no recibido")
+    
 
 
 #============== inicio del programa ============================================
@@ -264,16 +265,12 @@ for i in range(10):
     TIEMPO_PUB = 8
     try:
         utime.sleep(TIEMPO_PUB/2)
-        lm35.medir()
-        print("lm35 medido")
-        utime.sleep(2)
-        mq2.medir_humo()
-        print("mq2 medido")
-        utime.sleep(2)
-        ky026.medir_flama()
-        notificar()
-        #ky026.medir_flama()
-        #notificar_flama()
+        temperatura = random.randint(1, 100) + random.random()
+        humo = random.randint(100, 10000) + random.random()
+        pdf = random.randint(0,1)
+        mensaje = f'temperatura={temperatura}&humo={humo}&pdf={pdf}'
+        print(mensaje)
+        s.send(mensaje.encode())
         
     except Exception as e:
         print(e)
