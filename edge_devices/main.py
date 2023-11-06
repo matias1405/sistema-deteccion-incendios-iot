@@ -26,8 +26,8 @@ PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 PIN_LED_ROJO = 10 #led indicador #cambiar por embedded flash a gpio 10 pin 17
 PIN_BUZZER = 14 #gpio 14 y pin nro 12
 
-SSID = "FBWAY-473372_2.4"
-PASSWORD = "qlWjQcTi"
+SSID = "ALFARO"
+PASSWORD = "MATIAS64P13"
 SERVER_IP = '192.168.100.10'
 PORT = 2020
 TEMP_MAX = 57
@@ -50,15 +50,15 @@ class SensorTemperatura:
     def __init__(self, n_pin):
         self.pin_s_temperatura = m.ADC(m.Pin(n_pin, m.Pin.IN))
         self.pin_s_temperatura.atten(m.ADC.ATTN_2_5DB)
-        temp_inicial = self.pin_s_temperatura.read_uv()/10000
+        temp_inicial = self.pin_s_temperatura.read_uv()/10000*0.9
         self.lista_temp = [temp_inicial, temp_inicial, temp_inicial]
 
     def medir(self):
-        self.temp = self.pin_s_temperatura.read_uv()/10000
+        self.temp = self.pin_s_temperatura.read_uv()/10000*0.9
         utime.sleep(1)
-        self.temp += self.pin_s_temperatura.read_uv()/10000
+        self.temp += self.pin_s_temperatura.read_uv()/10000*0.9
         utime.sleep(1)
-        self.temp += self.pin_s_temperatura.read_uv()/10000
+        self.temp += self.pin_s_temperatura.read_uv()/10000*0.9
         self.temp = round(self.temp/3, 2)
         self.medir_cambio(self.temp)  #temperatura en °C
         
