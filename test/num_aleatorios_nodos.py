@@ -137,9 +137,7 @@ nodo4 = Nodo(name="nodo4", t_mod_dist=0.4, t_mod_tiempo=40, h_mod_dist=0.4, h_mo
 nodo5 = Nodo(name="nodo5", t_mod_dist=0.5, t_mod_tiempo=50, h_mod_dist=0.5, h_mod_tiempo=50, t_lim=40, h_lim=600000)
 nodo6 = Nodo(name="nodo6", t_mod_dist=0.6, t_mod_tiempo=60, h_mod_dist=0.6, h_mod_tiempo=60, t_lim=50, h_lim=400000)
 
-try:
-    client = connect_mqtt()
-    subscribe(client)
-    client.loop_start()
-except Exception as e:
-    print(e)
+client = connect_mqtt()
+subscribe(client)
+#client.loop_start()
+client.loop_forever()
