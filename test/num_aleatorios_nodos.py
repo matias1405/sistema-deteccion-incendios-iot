@@ -47,20 +47,20 @@ class Nodo:
         client.publish(self.t_topic, temp)
         if (self.t_lim < temp and self.h_lim < self.h):
             if self.pdf == False:
-                client.publish(self.pdf_topic, "true")
+                client.publish(self.pdf_topic, "1")
         else:
             if self.pdf == True:
-                client.publish(self.pdf_topic, "false")
+                client.publish(self.pdf_topic, "0")
 
     def publicar_h(self, client):
         humo = self.obtener_humo()
         client.publish(self.h_topic, humo)
         if (self.t_lim < self.t and self.h_lim < humo):
             if self.pdf == False:
-                client.publish(self.pdf_topic, "true")
+                client.publish(self.pdf_topic, "1")
         else:
             if self.pdf == True:
-                client.publish(self.pdf_topic, "false")
+                client.publish(self.pdf_topic, "0")
 
 
 class Colas:
