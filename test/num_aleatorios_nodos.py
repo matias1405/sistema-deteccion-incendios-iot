@@ -11,8 +11,6 @@ class Nodo:
         self.h_mod_tiempo = h_mod_tiempo
         self.t_lim = t_lim
         self.h_lim = h_lim
-        self.t_inicial = c_temperatura.lista[0]
-        self.h_inicial = c_humo.lista[0]
         self.t_topic = self.name + "/temperatura"
         self.h_topic = self.name + "/humo"
         self.pdf_topic = self.name + "/flama"
@@ -27,7 +25,7 @@ class Nodo:
         return suma/self.t_mod_tiempo
     
     def obtener_temp(self):
-        self.t = (self.t_promedio()-self.t_inicial)*(1-self.t_mod_dist)+self.t_inicial
+        self.t = (self.t_promedio()-c_temperatura.lista[0])*(1-self.t_mod_dist)+c_temperatura.lista[0]
         if self.t_mod_dist > 0 :
             self.t_mod_dist = self.t_mod_dist - DISM_MOD_TIEMPO
         return round(random.uniform(0.99*self.t, 1.01*self.t), 2)
@@ -39,7 +37,7 @@ class Nodo:
         return suma/self.h_mod_tiempo
     
     def obtener_humo(self):
-        self.h = (self.h_promedio()-self.h_inicial)*(1-self.h_mod_dist)+self.h_inicial
+        self.h = (self.h_promedio()-c_humo.lista[0])*(1-self.h_mod_dist)+c_humo.lista[0]
         if self.h_mod_dist > 0 :
             self.h_mod_dist = self.h_mod_dist - DISM_MOD_TIEMPO
         return round(random.uniform(0.99*self.h, 1.01*self.h), 2)
