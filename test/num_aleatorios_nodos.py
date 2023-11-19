@@ -127,11 +127,12 @@ PORT = 1883
 c_temperatura = Colas(60)
 c_humo = Colas(60)
 
-nodo2 = Nodo(name="nodo2", t_mod_dist=0.2, t_mod_tiempo=20, h_mod_dist=0.2, h_mod_tiempo=20, t_lim=40, h_lim=400000)
-nodo3 = Nodo(name="nodo3", t_mod_dist=0.3, t_mod_tiempo=30, h_mod_dist=0.3, h_mod_tiempo=30, t_lim=50, h_lim=500000)
-nodo4 = Nodo(name="nodo4", t_mod_dist=0.4, t_mod_tiempo=40, h_mod_dist=0.4, h_mod_tiempo=40, t_lim=60, h_lim=400000)
-nodo5 = Nodo(name="nodo5", t_mod_dist=0.5, t_mod_tiempo=50, h_mod_dist=0.5, h_mod_tiempo=50, t_lim=40, h_lim=600000)
-nodo6 = Nodo(name="nodo6", t_mod_dist=0.6, t_mod_tiempo=60, h_mod_dist=0.6, h_mod_tiempo=60, t_lim=50, h_lim=400000)
+nodo2 = Nodo(name="nodo2", t_mod_dist=0.2, t_mod_tiempo=20, h_mod_dist=0.2, h_mod_tiempo=20, t_lim=40, h_lim=400000) #bano
+nodo3 = Nodo(name="nodo3", t_mod_dist=0.3, t_mod_tiempo=30, h_mod_dist=0.3, h_mod_tiempo=30, t_lim=50, h_lim=500000) #habitacionA
+nodo4 = Nodo(name="nodo4", t_mod_dist=0.4, t_mod_tiempo=40, h_mod_dist=0.4, h_mod_tiempo=40, t_lim=60, h_lim=400000) #habitacionB
+nodo5 = Nodo(name="nodo5", t_mod_dist=0.5, t_mod_tiempo=50, h_mod_dist=0.5, h_mod_tiempo=50, t_lim=40, h_lim=600000) #habitacionC
+nodo6 = Nodo(name="nodo6", t_mod_dist=0.6, t_mod_tiempo=60, h_mod_dist=0.6, h_mod_tiempo=60, t_lim=50, h_lim=400000) #livingA
+nodo7 = Nodo(name="nodo7", t_mod_dist=0.6, t_mod_tiempo=60, h_mod_dist=0.6, h_mod_tiempo=60, t_lim=50, h_lim=400000) #livingB
 
 client = connect_mqtt()
 subscribe(client)
