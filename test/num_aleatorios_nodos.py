@@ -103,6 +103,8 @@ def subscribe(client: mqtt_client):
             nodo5.publicar_t(client)
             time.sleep(1)
             nodo6.publicar_t(client)
+            time.sleep(1)
+            nodo7.publicar_t(client)
         else:
             c_humo.add(float(mensaje))
             nodo2.publicar_h(client)
@@ -113,7 +115,9 @@ def subscribe(client: mqtt_client):
             time.sleep(1)
             nodo5.publicar_h(client)
             time.sleep(1)
-            nodo6.publicar_h(client)        
+            nodo6.publicar_h(client)
+            time.sleep(1)
+            nodo7.publicar_h(client)        
 
     client.subscribe([("nodo-sensores/temperatura", 0), ("nodo-sensores/humo", 0)])
     client.on_message = on_message
