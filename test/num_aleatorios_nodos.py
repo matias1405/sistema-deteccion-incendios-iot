@@ -1,5 +1,4 @@
 import random
-import time
 from paho.mqtt import client as mqtt_client
 
 class Nodo:
@@ -95,28 +94,28 @@ def subscribe(client: mqtt_client):
         if msg.topic == "nodo-sensores/temperatura":
             c_temperatura.add(float(mensaje))
             nodo2.publicar_t(client)
-            time.sleep(1)
+            #time.sleep(1)
             nodo3.publicar_t(client)
-            time.sleep(1)
+            #time.sleep(1)
             nodo4.publicar_t(client)
-            time.sleep(1)
+            #time.sleep(1)
             nodo5.publicar_t(client)
-            time.sleep(1)
+            #time.sleep(1)
             nodo6.publicar_t(client)
-            time.sleep(1)
+            #time.sleep(1)
             nodo7.publicar_t(client)
         else:
             c_humo.add(float(mensaje))
             nodo2.publicar_h(client)
-            time.sleep(1)
+            #time.sleep(1)
             nodo3.publicar_h(client)
-            time.sleep(1)
+            #time.sleep(1)
             nodo4.publicar_h(client)
-            time.sleep(1)
+            #time.sleep(1)
             nodo5.publicar_h(client)
-            time.sleep(1)
+            #time.sleep(1)
             nodo6.publicar_h(client)
-            time.sleep(1)
+            #time.sleep(1)
             nodo7.publicar_h(client)        
 
     client.subscribe([("nodo-sensores/temperatura", 0), ("nodo-sensores/humo", 0)])
