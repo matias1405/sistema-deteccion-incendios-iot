@@ -30,7 +30,7 @@ from telegram.ext import(
     ConversationHandler,
     CallbackQueryHandler,
     MessageHandler,
-    Filters
+    filters
     )
 from telegram import(
     InlineKeyboardMarkup,
@@ -294,7 +294,7 @@ if __name__ == '__main__':
             callback = callback_password)
         ],
         states = {
-            'estate_1' : [MessageHandler(Filters.text, verificacion_password)],
+            'estate_1' : [MessageHandler(filters.Text, verificacion_password)],
             'estate_2' : []
         },
         fallbacks=[])
