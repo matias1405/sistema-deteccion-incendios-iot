@@ -19,7 +19,7 @@ colocar la contraseña del sistema.
 
 from datetime import datetime
 from os import environ
-from threading import Thread
+#from threading import Thread
 from time import sleep
 
 from paho.mqtt import client as mqtt_client
@@ -317,8 +317,8 @@ if __name__ == '__main__':
     client = connect_mqtt()
     subscribe(client)
     #crea un hilo en segundo plano para publicar en novedades una vez al dia
-    hilo = Thread(target=revisar_hora, daemon=True)
-    hilo.start()
+    #hilo = Thread(target=revisar_hora, daemon=True)
+    #hilo.start()
     #busca novedades del cliente en segundo plano
     client.loop_forever()
     updater.idle()
