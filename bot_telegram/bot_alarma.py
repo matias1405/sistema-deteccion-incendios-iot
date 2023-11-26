@@ -21,6 +21,7 @@ from datetime import datetime
 from os import environ
 #from threading import Thread
 from time import sleep
+import boto3
 
 from paho.mqtt import client as mqtt_client
 from telegram.ext import(
@@ -308,6 +309,22 @@ if __name__ == '__main__':
         pattern = 'baja',
         callback = callback_dar_baja)
     )
+    client = boto3.client('ec2')
+    response = client.describe_instances(
+    Filters=[
+        {
+            'Name': 'tag:Name',
+            'Values': [
+                'proyecto-final',
+            ]
+        },
+    ],
+    DryRun=True,
+    MaxResults=123
+    )
+    print("++++++++++++++++++++++++++++++++++")
+    print(response[0])
+    print("++++++++++++++++++++++++++++++++++")
     #empieza a escanear el updater en busca de novedades en segundo plano
     updater.start_polling()
 
