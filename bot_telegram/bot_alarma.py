@@ -127,7 +127,6 @@ async def verificacion_password(update: Update, context: ContextTypes.DEFAULT_TY
     )
     if PASSWORD == update.message.text:
         await update.message.reply_text('Contraseña aceptada')
-        print(update.effective_chat.id)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text = '¿Qué acción desea realizar?', 
@@ -154,6 +153,7 @@ async def registrar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     await query.edit_message_text(text='Se ha registrado al Sistema de Alerta correctamente')
     await context.bot.send_message(chat_id=update.effective_chat.id, text='Se enviará una alerta en caso de incendio')
+    print("alta: ",update.effective_chat.id)
     db.add(update.effective_chat.id)
 
 
@@ -168,8 +168,8 @@ async def callback_dar_baja(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(text='Baja de servicio completada.')
-    print(context._chat_id_and_data[0])
-    db.remove(context._chat_id_and_data[0])
+    print("baja: ", update.effective_chat.id)
+    db.remove(update.effective_chat.id)
 
 
 def connect_mqtt() -> mqtt_client:
