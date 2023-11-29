@@ -231,7 +231,7 @@ if __name__ == '__main__':
 
     #========== comandos de para interactuar con telegram ====================
     #crea un bot 
-    application = ApplicationBuilder().token('TOKEN').build()
+    application = ApplicationBuilder().token(_token).build()
 
     #cuando el bot reciba el comando '/start', llama a la fucion start
     application.add_handler(CommandHandler('start', start))
