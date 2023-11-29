@@ -24,19 +24,10 @@ from time import sleep
 import boto3
 
 from paho.mqtt import client as mqtt_client
-from telegram.ext import(
-    CommandHandler,
-    Updater,
-    ConversationHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters
-    )
-from telegram import(
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
-    Bot
-    )
+
+import logging
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update, Bot
+from telegram.ext import ApplicationBuilder, ContextTypes, ConversationHandler, CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
 #=========== definicion de variables y constantes globales =====================
 
@@ -86,8 +77,7 @@ class BaseDeDatos:
 
 
 #============== definicion de funciones ==================================
-
-def start(update, context):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     El bot devuelve un mensaje de bienvenida junto a un boton llamado
     "verificacion", si el usuario oprime el boton se devuelve en forma de
@@ -97,13 +87,13 @@ def start(update, context):
         text = 'Verificación',
         callback_data = 'password'
     )
-    update.message.reply_text(
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
         text = 'Bienvenidos al Sistema de Alerta de Incedios',
         reply_markup = InlineKeyboardMarkup([[button_1]])
     )
 
-
-def callback_password(update, context):
+async def callback_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Responde silenciosamente al llamado de una callback_query, luego cambia el
     boton y texto asociado por un mensaje.
@@ -112,12 +102,11 @@ def callback_password(update, context):
     Es el primer paso para que el usuario ingrese la contraseña de verificacion
     """
     query = update.callback_query
-    query.answer()
-    query.edit_message_text(text='Por favor, Ingrese la contraseña')
+    await query.answer()
+    await query.edit_message_text(text='Por favor, Ingrese la contraseña')
     return 'estate_1'
 
-
-def verificacion_password(update, context):
+async def verificacion_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Esta función es llamada cuando el usuario ingreso la contraseña de
     verificacion.
@@ -129,15 +118,14 @@ def verificacion_password(update, context):
     Luego termina la conversacion.
     """
     if PASSWORD == update.message.text:
-        update.message.reply_text('Contraseña aceptada')
-        update.message.reply_text('Se enviará una alerta en caso de incendio')
+        await update.message.reply_text('Contraseña aceptada')
+        await update.message.reply_text('Se enviará una alerta en caso de incendio')
         db.add(update.message.chat.id)
     else:
-        update.message.reply_text('Contraseña incorrecta')
+        await update.message.reply_text('Contraseña incorrecta')
     return ConversationHandler.END
 
-
-def callback_terminado(update, context):
+async def callback_terminado(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Responde silenciosamente al llamado de una callback_query, luego cambia el
     boton y texto asociado por un mensaje.
@@ -145,12 +133,11 @@ def callback_terminado(update, context):
     termino para que este a su vez, avise al sistema.
     """
     query = update.callback_query
-    query.answer()
-    query.edit_message_text(text='Aviso enviado')
+    await query.answer()
+    await query.edit_message_text(text='Aviso enviado')
     print('Aviso de incendio terminado RECIBIDO')
 
-
-def callback_dar_baja(update, context):
+async def callback_dar_baja(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Responde silenciosamente al llamado de una callback_query, luego cambia el
     boton y texto asociado por un mensaje.
@@ -159,10 +146,11 @@ def callback_dar_baja(update, context):
     datos
     """
     query = update.callback_query
-    query.answer()
-    query.edit_message_text(text='Baja de servicio completada.')
+    await query.answer()
+    await query.edit_message_text(text='Baja de servicio completada.')
     print(context._chat_id_and_data[0])
     db.remove(context._chat_id_and_data[0])
+
 
 def connect_mqtt() -> mqtt_client:
     """
@@ -228,6 +216,83 @@ def notificar():
         )
 
 
+#==================== Programa Principal =======================================
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+if __name__ == '__main__':
+
+    #creacion de la base de datos
+
+    db = BaseDeDatos("./chats_id.txt")
+
+    #========== comandos de para interactuar con telegram ====================
+    #crea un bot 
+    application = ApplicationBuilder().token('TOKEN').build()
+
+    #cuando el bot reciba el comando '/start', llama a la fucion start
+    application.add_handler(CommandHandler('start', start))
+    #crea una conversacion con los siguientes puntos de entradas y estados
+    application.add_handler(
+        ConversationHandler(
+            entry_points = [CallbackQueryHandler(
+                pattern = 'password',
+                callback = callback_password)
+            ],
+            states = {
+                'estate_1' : [MessageHandler(filters.Text, verificacion_password)],
+                'estate_2' : []
+            },
+            fallbacks=[]
+        )
+    )
+    #cuando el se reciba un callback_data relacionado a la palabra pattern
+    #llama a la funcion callback especificada
+    application.add_handler(CallbackQueryHandler(
+        pattern = 'incendio_terminado',
+        callback = callback_terminado)
+    )
+    application.add_handler(CallbackQueryHandler(
+        pattern = 'baja',
+        callback = callback_dar_baja)
+    )
+    """
+    client = boto3.client('ec2')
+    response = client.describe_instances(
+    Filters=[
+        {
+            'Name': 'tag:Name',
+            'Values': [
+                'proyecto-final',
+            ]
+        },
+    ],
+    DryRun=True,
+    MaxResults=123
+    )
+    print("++++++++++++++++++++++++++++++++++")
+    print(response[0])
+    print("++++++++++++++++++++++++++++++++++")
+    """
+    #empieza a escanear el updater en busca de novedades en segundo plano
+    application.run_polling()
+
+    #============= comandos para interactuar con el broker de mqtt ===========
+
+    #crea un objeto cliente de la clase mqtt_client
+    client = connect_mqtt()
+    subscribe(client)
+    #busca novedades del cliente en segundo plano
+    client.loop_forever()
+
+############################ programa viejo ###################################
+"""
+    #crea un hilo en segundo plano para publicar en novedades una vez al dia
+    #hilo = Thread(target=revisar_hora, daemon=True)
+    #hilo.start()
 def notificar_novedades():
     aviso = "Este mensaje se envía automaticamente una vez al dia. Las\
     novedades de hoy son:"
@@ -268,73 +333,4 @@ def revisar_hora():
             notificar_novedades()
             sleep(60*60*23)
         sleep(120)
-
-
-#==================== Programa Principal =======================================
-
-if __name__ == '__main__':
-
-    #creacion de la base de datos
-
-    db = BaseDeDatos("./chats_id.txt")
-
-    #========== comandos de para interactuar con telegram ====================
-    bot=Bot(_token)
-    #crea un bot a traves del objeto updater - actualizador
-    updater = Updater(bot, use_context = True)
-    #creamos el dispatcher para manejar los metodos handler
-    dp = updater.dispatcher
-    #cuando el bot reciba el comando '/start', llama a la fucion start
-    dp.add_handler(CommandHandler('start', start))
-    #crea una conversacion con los siguientes puntos de entradas y estados
-    dp.add_handler(ConversationHandler(
-        entry_points = [CallbackQueryHandler(
-            pattern = 'password',
-            callback = callback_password)
-        ],
-        states = {
-            'estate_1' : [MessageHandler(filters.Text, verificacion_password)],
-            'estate_2' : []
-        },
-        fallbacks=[])
-    )
-    #cuando el se reciba un callback_data relacionado a la palabra pattern
-    #llama a la funcion callback especificada
-    dp.add_handler(CallbackQueryHandler(
-        pattern = 'incendio_terminado',
-        callback = callback_terminado)
-    )
-    dp.add_handler(CallbackQueryHandler(
-        pattern = 'baja',
-        callback = callback_dar_baja)
-    )
-    client = boto3.client('ec2')
-    response = client.describe_instances(
-    Filters=[
-        {
-            'Name': 'tag:Name',
-            'Values': [
-                'proyecto-final',
-            ]
-        },
-    ],
-    DryRun=True,
-    MaxResults=123
-    )
-    print("++++++++++++++++++++++++++++++++++")
-    print(response[0])
-    print("++++++++++++++++++++++++++++++++++")
-    #empieza a escanear el updater en busca de novedades en segundo plano
-    updater.start_polling()
-
-    #============= comandos para interactuar con el broker de mqtt ===========
-
-    #crea un objeto cliente de la clase mqtt_client
-    client = connect_mqtt()
-    subscribe(client)
-    #crea un hilo en segundo plano para publicar en novedades una vez al dia
-    #hilo = Thread(target=revisar_hora, daemon=True)
-    #hilo.start()
-    #busca novedades del cliente en segundo plano
-    client.loop_forever()
-    updater.idle()
+"""
