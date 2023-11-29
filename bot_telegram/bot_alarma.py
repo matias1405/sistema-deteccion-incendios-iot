@@ -241,10 +241,11 @@ def notificar():
     cuando el incendio haya terminado para avisar al sistema.
     """
     aviso = 'Este es un aviso de INCENDIO, por favor contacta con las\
-    autoridades de emergencia.\nNro tel Bomberos: 105\nNro tel Policia\
-    101\nPor favor notifique por este medio al Sistema cuando la situación\
-    de incendio haya terminado.'
-    print('noificando...')
+    autoridades de emergencia.\nNro tel Bomberos: 100\n\n\
+    Para monitorear la emergencia puede ingresar a la siguiente url:\
+    \n', direccion_ip ,'\n\nPor favor notifique por este medio al Sistema\
+    cuando la situación de incendio haya terminado.'
+    print('notificando...')
     bot=Bot(_token)
     button = InlineKeyboardButton(
         text = 'Incendio Terminado',
@@ -313,9 +314,6 @@ if __name__ == '__main__':
     print(f"La dirección IP pública de la instancia {id_instancia} es: {direccion_ip}")
     print("++++++++++++++++++++++++++++++++++")
     
-    #empieza a escanear el updater en busca de novedades en segundo plano
-    application.run_polling()
-
     #============= comandos para interactuar con el broker de mqtt ===========
 
     #crea un objeto cliente de la clase mqtt_client
@@ -323,6 +321,9 @@ if __name__ == '__main__':
     subscribe(client)
     #busca novedades del cliente en segundo plano
     client.loop_forever()
+
+    #empieza a escanear el updater en busca de novedades en segundo plano
+    application.run_polling()
 
 ############################ programa viejo ###################################
 """
