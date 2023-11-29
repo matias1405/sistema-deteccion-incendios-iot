@@ -82,7 +82,7 @@ def obtener_ip_publica(id_instancia):
     # Configura las credenciales de AWS (asegúrate de tener configuradas las credenciales adecuadas)
     # Puedes configurar las credenciales mediante el archivo ~/.aws/credentials o mediante variables de entorno.
     # Consulta la documentación de Boto3 para más detalles: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html#configuration
-    ec2 = boto3.resource('ec2', region_name='us-east-1')  # Reemplaza 'us-east-1' con tu región de EC2
+    ec2 = boto3.resource('ec2', region_name='sa-east-1')  # Reemplaza 'us-east-1' con tu región de EC2
 
     try:
         # Obtiene la instancia usando el ID
