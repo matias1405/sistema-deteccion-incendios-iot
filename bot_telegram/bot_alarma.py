@@ -104,7 +104,6 @@ async def callback_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(text='Por favor, Ingrese la contraseña')
-    print("casi llego")
     return 'estate_1'
 
 async def verificacion_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -118,11 +117,21 @@ async def verificacion_password(update: Update, context: ContextTypes.DEFAULT_TY
 
     Luego termina la conversacion.
     """
-    print("llegue")
+    button_1 = InlineKeyboardButton(
+        text = 'Registrarse para recibir Alertas',
+        callback_data = 'registrarse'
+    )
+    button_2 = InlineKeyboardButton(
+        text = 'Dar de baja',
+        callback_data = 'baja'
+    )
     if PASSWORD == update.message.text:
         await update.message.reply_text('Contraseña aceptada')
-        await update.message.reply_text('Se enviará una alerta en caso de incendio')
-        db.add(update.message.chat.id)
+        print(update.effective_chat.id)
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, 
+            reply_markup = InlineKeyboardMarkup([[button_1, button_2]])
+        )
     else:
         await update.message.reply_text('Contraseña incorrecta')
     return ConversationHandler.END
@@ -138,6 +147,14 @@ async def callback_terminado(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
     await query.edit_message_text(text='Aviso enviado')
     print('Aviso de incendio terminado RECIBIDO')
+
+async def registrar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_text(text='Se ha registrado al Sistema de Alerta correctamente')
+    await context.bot.send_message(chat_id=update.effective_chat.id, text='Se enviará una alerta en caso de incendio')
+    db.add(update.effective_chat.id)
+
 
 async def callback_dar_baja(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -260,6 +277,10 @@ if __name__ == '__main__':
     application.add_handler(CallbackQueryHandler(
         pattern = 'baja',
         callback = callback_dar_baja)
+    )
+    application.add_handler(CallbackQueryHandler(
+        pattern = 'registrarse',
+        callback = registrar)
     )
     """
     client = boto3.client('ec2')
