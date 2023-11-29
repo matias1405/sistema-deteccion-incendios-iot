@@ -292,7 +292,7 @@ if __name__ == '__main__':
             'Values': [
                 'proyecto-final'
             ]
-        },
+        }
     ],
     DryRun=True,
     MaxResults=123
