@@ -245,7 +245,7 @@ if __name__ == '__main__':
                 callback = callback_password)
             ],
             states = {
-                'estate_1' : [MessageHandler(filters.Text, verificacion_password)],
+                'estate_1' : [MessageHandler(filters.TEXT, verificacion_password)],
                 'estate_2' : []
             },
             fallbacks=[]
