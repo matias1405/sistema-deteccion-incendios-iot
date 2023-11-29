@@ -238,10 +238,10 @@ def notificar():
 
 #==================== Programa Principal =======================================
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+#logging.basicConfig(
+#    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#    level=logging.INFO
+#)
 
 if __name__ == '__main__':
 
@@ -283,14 +283,14 @@ if __name__ == '__main__':
         pattern = 'registrarse',
         callback = registrar)
     )
-    """
+    
     client = boto3.client('ec2')
     response = client.describe_instances(
     Filters=[
         {
             'Name': 'tag:Name',
             'Values': [
-                'proyecto-final',
+                'proyecto-final'
             ]
         },
     ],
@@ -300,7 +300,7 @@ if __name__ == '__main__':
     print("++++++++++++++++++++++++++++++++++")
     print(response[0])
     print("++++++++++++++++++++++++++++++++++")
-    """
+    
     #empieza a escanear el updater en busca de novedades en segundo plano
     application.run_polling()
 
