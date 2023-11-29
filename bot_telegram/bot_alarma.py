@@ -129,7 +129,8 @@ async def verificacion_password(update: Update, context: ContextTypes.DEFAULT_TY
         await update.message.reply_text('Contraseña aceptada')
         print(update.effective_chat.id)
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, 
+            chat_id=update.effective_chat.id,
+            text = '¿Qué acción desea realizar?', 
             reply_markup = InlineKeyboardMarkup([[button_1, button_2]])
         )
     else:
