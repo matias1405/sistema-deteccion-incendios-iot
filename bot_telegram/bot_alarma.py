@@ -77,6 +77,28 @@ class BaseDeDatos:
 
 
 #============== definicion de funciones ==================================
+
+def obtener_ip_publica(id_instancia):
+    # Configura las credenciales de AWS (asegúrate de tener configuradas las credenciales adecuadas)
+    # Puedes configurar las credenciales mediante el archivo ~/.aws/credentials o mediante variables de entorno.
+    # Consulta la documentación de Boto3 para más detalles: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html#configuration
+    ec2 = boto3.resource('ec2', region_name='us-east-1')  # Reemplaza 'us-east-1' con tu región de EC2
+
+    try:
+        # Obtiene la instancia usando el ID
+        instancia = ec2.Instance(id_instancia)
+
+        # Obtiene la dirección IP pública de la instancia
+        ip_publica = instancia.public_ip_address
+
+        if ip_publica:
+            return ip_publica
+        else:
+            return "La instancia no tiene una dirección IP pública asignada."
+
+    except Exception as e:
+        return f"Error: {str(e)}"
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     El bot devuelve un mensaje de bienvenida junto a un boton llamado
@@ -284,21 +306,11 @@ if __name__ == '__main__':
         callback = registrar)
     )
     
-    client = boto3.client('ec2')
-    response = client.describe_instances(
-    Filters=[
-        {
-            'Name': 'tag:Name',
-            'Values': [
-                'proyecto-final'
-            ]
-        }
-    ],
-    DryRun=True,
-    MaxResults=123
-    )
+    # Reemplaza 'i-xxxxxxxxxxxxxxxxx' con el ID de tu instancia de EC2
+    id_instancia = 'i-035d75332e49fac52'
+    direccion_ip = obtener_ip_publica(id_instancia)
     print("++++++++++++++++++++++++++++++++++")
-    print(response[0])
+    print(f"La dirección IP pública de la instancia {id_instancia} es: {direccion_ip}")
     print("++++++++++++++++++++++++++++++++++")
     
     #empieza a escanear el updater en busca de novedades en segundo plano
