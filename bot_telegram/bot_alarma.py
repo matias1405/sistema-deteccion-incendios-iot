@@ -229,7 +229,6 @@ def notificar():
 
 
 def notificar_novedades():
-    bot=Bot(_token)
     aviso = "Este mensaje se envía automaticamente una vez al dia. Las\
     novedades de hoy son:"
     aviso_baja = "Si desea dar de baja este numero para el Sistema de Alerta\
@@ -280,9 +279,9 @@ if __name__ == '__main__':
     db = BaseDeDatos("./chats_id.txt")
 
     #========== comandos de para interactuar con telegram ====================
-
+    bot=Bot(_token)
     #crea un bot a traves del objeto updater - actualizador
-    updater = Updater(token = _token, use_context = True)
+    updater = Updater(bot, use_context = True)
     #creamos el dispatcher para manejar los metodos handler
     dp = updater.dispatcher
     #cuando el bot reciba el comando '/start', llama a la fucion start
