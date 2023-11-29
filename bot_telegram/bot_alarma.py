@@ -104,6 +104,7 @@ async def callback_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(text='Por favor, Ingrese la contraseña')
+    print("casi llego")
     return 'estate_1'
 
 async def verificacion_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -117,6 +118,7 @@ async def verificacion_password(update: Update, context: ContextTypes.DEFAULT_TY
 
     Luego termina la conversacion.
     """
+    print("llegue")
     if PASSWORD == update.message.text:
         await update.message.reply_text('Contraseña aceptada')
         await update.message.reply_text('Se enviará una alerta en caso de incendio')
