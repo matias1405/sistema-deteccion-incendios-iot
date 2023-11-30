@@ -319,11 +319,11 @@ if __name__ == '__main__':
 
     #crea un objeto cliente de la clase mqtt_client
     client = connect_mqtt()
-    print("llegue")
-    subscribe(client)
     
+    subscribe(client)
     #empieza a escanear el updater en busca de novedades en segundo plano
     application.run_polling()
+    print("llegue")
     #busca novedades del cliente en segundo plano
     client.loop_forever()
 
