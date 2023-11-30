@@ -326,6 +326,7 @@ if __name__ == '__main__':
     print("llegue")
     #busca novedades del cliente en segundo plano
     client.loop_forever()
+    print("llegue")
     application.run_polling()
 
 ############################ programa viejo ###################################
