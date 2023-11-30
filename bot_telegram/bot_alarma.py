@@ -322,10 +322,11 @@ if __name__ == '__main__':
     
     subscribe(client)
     #empieza a escanear el updater en busca de novedades en segundo plano
-    application.run_polling()
+    
     print("llegue")
     #busca novedades del cliente en segundo plano
     client.loop_forever()
+    application.run_polling()
 
 ############################ programa viejo ###################################
 """
