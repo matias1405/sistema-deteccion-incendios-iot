@@ -243,7 +243,7 @@ def notificar():
     aviso = 'Este es un aviso de INCENDIO, por favor contacta con las\
     autoridades de emergencia.\nNro tel Bomberos: 100\n\n\
     Para monitorear la emergencia puede ingresar a la siguiente url:\
-    \n', direccion_ip ,'\n\nPor favor notifique por este medio al Sistema\
+    \n', url ,'\n\nPor favor notifique por este medio al Sistema\
     cuando la situación de incendio haya terminado.'
     print('notificando...')
     bot=Bot(_token)
@@ -313,17 +313,19 @@ if __name__ == '__main__':
     print("++++++++++++++++++++++++++++++++++")
     print(f"La dirección IP pública de la instancia {id_instancia} es: {direccion_ip}")
     print("++++++++++++++++++++++++++++++++++")
+    url = f"http://ec2-{direccion_ip}.sa-east-1.compute.amazonaws.com:1880/ui"
     
     #============= comandos para interactuar con el broker de mqtt ===========
 
     #crea un objeto cliente de la clase mqtt_client
     client = connect_mqtt()
+    print("llegue")
     subscribe(client)
-    #busca novedades del cliente en segundo plano
-    client.loop_forever()
-
+    
     #empieza a escanear el updater en busca de novedades en segundo plano
     application.run_polling()
+    #busca novedades del cliente en segundo plano
+    client.loop_forever()
 
 ############################ programa viejo ###################################
 """
