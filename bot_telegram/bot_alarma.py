@@ -316,18 +316,20 @@ if __name__ == '__main__':
     url = f"http://ec2-{direccion_ip}.sa-east-1.compute.amazonaws.com:1880/ui"
     
     #============= comandos para interactuar con el broker de mqtt ===========
-
-    #crea un objeto cliente de la clase mqtt_client
-    client = connect_mqtt()
-    
-    subscribe(client)
-    #empieza a escanear el updater en busca de novedades en segundo plano
-    
-    print("llegue")
-    #busca novedades del cliente en segundo plano
-    client.loop_forever()
-    print("llegue")
-    application.run_polling()
+    try:
+        #crea un objeto cliente de la clase mqtt_client
+        client = connect_mqtt()
+        
+        subscribe(client)
+        #empieza a escanear el updater en busca de novedades en segundo plano
+        
+        print("llegue")
+        #busca novedades del cliente en segundo plano
+        client.loop_start()
+        print("llegue")
+        application.run_polling()
+    finally:
+        client.loop_stop()
 
 ############################ programa viejo ###################################
 """
