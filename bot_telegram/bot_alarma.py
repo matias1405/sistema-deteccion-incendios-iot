@@ -310,9 +310,9 @@ if __name__ == '__main__':
     id_instancia = 'i-035d75332e49fac52'
     dns_publica = obtener_dns_publica(id_instancia)
     print("++++++++++++++++++++++++++++++++++")
-    print(f"La dirección IP pública de la instancia {id_instancia} es: {direccion_ip}")
+    print(f"La DNS pública de la instancia {id_instancia} es: {dns_publica}")
     print("++++++++++++++++++++++++++++++++++")
-    url = f"http://{direccion_ip}:1880/ui"
+    url = f"http://{dns_publica}:1880/ui"
     
     #============= comandos para interactuar con el broker de mqtt ===========
     try:
