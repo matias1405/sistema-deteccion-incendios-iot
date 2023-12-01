@@ -241,10 +241,10 @@ async def notificar():
     El mensaje consta de un texto y un boton que el usuario deberára presionar
     cuando el incendio haya terminado para avisar al sistema.
     """
-    aviso = f"Este es un aviso de INCENDIO, por favor contacta con las\
-    autoridades de emergencia.\nNro tel Bomberos: 100\n\n\
-    Para monitorear la emergencia puede ingresar a la siguiente url:\
-    \n {url}\n\nPor favor notifique por este medio al Sistema\
+    aviso = f"Este es un aviso de INCENDIO, por favor contacta con las
+    autoridades de emergencia.\nNro tel Bomberos: 100\n\nPara
+    monitorear la emergencia puede ingresar a la siguiente url:
+    \n {url}\n\nPor favor notifique por este medio al Sistema
     cuando la situación de incendio haya terminado."
     print('notificando...')
     bot = Bot(token=_token)
