@@ -99,6 +99,7 @@ def obtener_dns_publica(id_instancia):
 
     except Exception as e:
         return f"Error: {str(e)}"
+    
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -116,6 +117,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup([[button_1]])
     )
 
+
 async def callback_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Responde silenciosamente al llamado de una callback_query, luego cambia el
@@ -128,6 +130,7 @@ async def callback_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     await query.edit_message_text(text='Por favor, Ingrese la contraseña')
     return 'estate_1'
+
 
 async def verificacion_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -159,6 +162,7 @@ async def verificacion_password(update: Update, context: ContextTypes.DEFAULT_TY
         await update.message.reply_text('Contraseña incorrecta')
     return ConversationHandler.END
 
+
 async def callback_terminado(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Responde silenciosamente al llamado de una callback_query, luego cambia el
@@ -170,6 +174,7 @@ async def callback_terminado(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
     await query.edit_message_text(text='Aviso enviado')
     print('Aviso de incendio terminado RECIBIDO')
+
 
 async def registrar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
