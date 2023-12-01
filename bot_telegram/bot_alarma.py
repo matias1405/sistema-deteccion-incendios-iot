@@ -26,6 +26,7 @@ import boto3
 from paho.mqtt import client as mqtt_client
 
 import logging
+import asyncio
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update, Bot
 from telegram.ext import ApplicationBuilder, ContextTypes, ConversationHandler, CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
@@ -225,7 +226,7 @@ def subscribe(client: mqtt_client):
         mensaje = msg.payload.decode()
         print(f"Received '{mensaje}' from '{msg.topic}' topic")
         if mensaje == 'incendio':
-            notificar()
+            asyncio.run(notificar())
         else:
             lista_novedades.append(mensaje)
 
@@ -233,7 +234,7 @@ def subscribe(client: mqtt_client):
     client.on_message = on_message
 
 
-def notificar():
+async def notificar():
     """
     Esta funcion crea otro bot que avisa a los usuarios en caso de incendio.
     El aviso se da a todos los usuarios registrados en la base de datos.
@@ -246,13 +247,13 @@ def notificar():
     \n', url ,'\n\nPor favor notifique por este medio al Sistema\
     cuando la situación de incendio haya terminado.'
     print('notificando...')
-    bot=Bot(_token)
+    bot = Bot(token=_token)
     button = InlineKeyboardButton(
         text = 'Incendio Terminado',
         callback_data = 'incendio_terminado'
     )
     for id_acep in db.get_id():
-        bot.send_message(
+        await bot.sendMessage(
             chat_id=id_acep,
             text=aviso,
             reply_markup = InlineKeyboardMarkup([[button]])
@@ -319,14 +320,10 @@ if __name__ == '__main__':
     try:
         #crea un objeto cliente de la clase mqtt_client
         client = connect_mqtt()
-        
         subscribe(client)
-        #empieza a escanear el updater en busca de novedades en segundo plano
         
-        print("llegue")
         #busca novedades del cliente en segundo plano
         client.loop_start()
-        print("llegue")
         application.run_polling()
     finally:
         client.loop_stop()
