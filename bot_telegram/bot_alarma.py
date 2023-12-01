@@ -79,7 +79,7 @@ class BaseDeDatos:
 
 #============== definicion de funciones ==================================
 
-def obtener_ip_publica(id_instancia):
+def obtener_dns_publica(id_instancia):
     # Configura las credenciales de AWS (asegúrate de tener configuradas las credenciales adecuadas)
     # Puedes configurar las credenciales mediante el archivo ~/.aws/credentials o mediante variables de entorno.
     # Consulta la documentación de Boto3 para más detalles: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html#configuration
@@ -90,12 +90,12 @@ def obtener_ip_publica(id_instancia):
         instancia = ec2.Instance(id_instancia)
 
         # Obtiene la dirección IP pública de la instancia
-        ip_publica = instancia.public_ip_address
+        ip_publica = instancia.public_dns_name
 
         if ip_publica:
             return ip_publica
         else:
-            return "La instancia no tiene una dirección IP pública asignada."
+            return "La instancia no tiene una dns pública asignada."
 
     except Exception as e:
         return f"Error: {str(e)}"
@@ -308,11 +308,11 @@ if __name__ == '__main__':
     
     # Reemplaza 'i-xxxxxxxxxxxxxxxxx' con el ID de tu instancia de EC2
     id_instancia = 'i-035d75332e49fac52'
-    direccion_ip = obtener_ip_publica(id_instancia)
+    dns_publica = obtener_dns_publica(id_instancia)
     print("++++++++++++++++++++++++++++++++++")
     print(f"La dirección IP pública de la instancia {id_instancia} es: {direccion_ip}")
     print("++++++++++++++++++++++++++++++++++")
-    url = f"http://ec2-{direccion_ip}.sa-east-1.compute.amazonaws.com:1880/ui"
+    url = f"http://{direccion_ip}:1880/ui"
     
     #============= comandos para interactuar con el broker de mqtt ===========
     try:
