@@ -26,9 +26,9 @@ PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 PIN_LED_ROJO = 10 #led indicador #cambiar por embedded flash a gpio 10 pin 17
 PIN_BUZZER = 14 #gpio 14 y pin nro 12
 
-SSID = "ALFARO"
-PASSWORD = "MATIAS64P13"
-SERVER_IP = '192.168.100.10'
+SSID = ["ALFARO", "moto g9 play", "LAB DIGITALES"]
+PASSWORD = ["MATIAS64P13", "1234matias", "digitales.123"]
+SERVER_IP = ['192.168.100.10', '192.168.141.10', '172.20.1.10']
 PORT = 2020
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
@@ -235,14 +235,18 @@ sta_if.active(False)
 utime.sleep(2)
 sta_if.active(True)
 utime.sleep(2)
-sta_if.connect(SSID, PASSWORD)
-
-# Espera a que se establezca la conexión WiFi
-tiempo_inicial = utime.time()
-while not sta_if.isconnected() and utime.time() - tiempo_inicial < 10:
-    print(".")
-    utime.sleep_ms(100)
-    pass
+for i in range(3):
+    sta_if.connect(SSID[i], PASSWORD[i])
+    # Espera a que se establezca la conexión WiFi
+    tiempo_inicial = utime.time()
+    while not sta_if.isconnected() and utime.time() - tiempo_inicial < 10:
+        print(".")
+        utime.sleep_ms(100)
+        pass
+    if sta_if.isconnected():
+        _SERVER_IP = SERVER_IP[i]
+        print("red numero: ", i)
+        break
 
 # Si no se logra conectar, se desactiva el modo WiFi
 if not sta_if.isconnected():
@@ -257,7 +261,7 @@ buzzer.off()
 
 # Conexión con el servidor
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((SERVER_IP, PORT))
+s.connect((_SERVER_IP, PORT))
 print("conectando..")
 #while True:
 for i in range(10):
@@ -265,10 +269,10 @@ for i in range(10):
     try:
         utime.sleep(TIEMPO_PUB/2)
         lm35.medir()
-        print("lm35 medido")
+        #print("lm35 medido")
         utime.sleep(2)
         mq2.medir_humo()
-        print("mq2 medido")
+        #print("mq2 medido")
         utime.sleep(2)
         ky026.medir_flama()
         notificar()
