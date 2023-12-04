@@ -173,7 +173,7 @@ async def callback_terminado(update: Update, context: ContextTypes.DEFAULT_TYPE)
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(text='Aviso enviado')
-    #print('Aviso de incendio terminado RECIBIDO')
+    print('Aviso de incendio terminado RECIBIDO')
     msg = "terminado"
     client.publish(TOPIC_PUB, msg)
 
@@ -234,8 +234,6 @@ def subscribe(client: mqtt_client):
         print(f"Received '{mensaje}' from '{msg.topic}' topic")
         if mensaje == 'incendio':
             asyncio.run(notificar())
-        else:
-            lista_novedades.append(mensaje)
 
     client.subscribe(TOPIC_SUB)
     client.on_message = on_message
