@@ -39,8 +39,8 @@ chats_aceptados = []
 lista_novedades = []
 BROKER = 'localhost'
 PORT = 1883
-TOPIC_SUB = "s-alerta-incendio/estado"
-TOPIC_PUB = "s-alerta-incendio/novedades"
+TOPIC_SUB = "estado"
+TOPIC_PUB = "estado"
 HORA_PUB = "22:05:00"
 
 #================ definicion de clases ===================================
@@ -173,7 +173,9 @@ async def callback_terminado(update: Update, context: ContextTypes.DEFAULT_TYPE)
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(text='Aviso enviado')
-    print('Aviso de incendio terminado RECIBIDO')
+    #print('Aviso de incendio terminado RECIBIDO')
+    msg = "terminado"
+    client.publish(TOPIC_PUB, msg)
 
 
 async def registrar(update: Update, context: ContextTypes.DEFAULT_TYPE):
