@@ -173,7 +173,7 @@ async def callback_terminado(update: Update, context: ContextTypes.DEFAULT_TYPE)
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(text='Aviso enviado')
-    print('Aviso de incendio terminado RECIBIDO')
+    #print('Aviso de incendio terminado RECIBIDO')
     msg = "terminado"
     client.publish(TOPIC_PUB, msg)
 
@@ -183,7 +183,7 @@ async def registrar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     await query.edit_message_text(text='Se ha registrado al Sistema de Alerta correctamente')
     await context.bot.send_message(chat_id=update.effective_chat.id, text='Se enviará una alerta en caso de incendio')
-    print("alta: ",update.effective_chat.id)
+    #print("alta: ",update.effective_chat.id)
     db.add(update.effective_chat.id)
 
 
@@ -198,7 +198,7 @@ async def callback_dar_baja(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(text='Baja de servicio completada.')
-    print("baja: ", update.effective_chat.id)
+    #print("baja: ", update.effective_chat.id)
     db.remove(update.effective_chat.id)
 
 
@@ -231,7 +231,7 @@ def subscribe(client: mqtt_client):
     """
     def on_message(client, userdata, msg):
         mensaje = msg.payload.decode()
-        print(f"Received '{mensaje}' from '{msg.topic}' topic")
+        #print(f"Received '{mensaje}' from '{msg.topic}' topic")
         if mensaje == 'incendio':
             asyncio.run(notificar())
 
@@ -249,7 +249,7 @@ async def notificar():
     aviso = f"Este es un aviso de INCENDIO, por favor contacta con las autoridades de emergencia.\n"
     aviso += f"Nro tel Bomberos: 100\n\nPara monitorear la emergencia puede ingresar a la siguiente url:"
     aviso += f"\n {url}\n\nPor favor notifique por este medio al Sistema cuando la situación de incendio haya terminado."
-    print('notificando...')
+    #print('notificando...')
     bot = Bot(token=_token)
     button = InlineKeyboardButton(
         text = 'Incendio Terminado',
@@ -314,9 +314,9 @@ if __name__ == '__main__':
     # Reemplaza 'i-xxxxxxxxxxxxxxxxx' con el ID de tu instancia de EC2
     id_instancia = 'i-035d75332e49fac52'
     dns_publica = obtener_dns_publica(id_instancia)
-    print("++++++++++++++++++++++++++++++++++")
+    #print("++++++++++++++++++++++++++++++++++")
     print(f"La DNS pública de la instancia {id_instancia} es: {dns_publica}")
-    print("++++++++++++++++++++++++++++++++++")
+    #print("++++++++++++++++++++++++++++++++++")
     url = f"http://{dns_publica}:1880/ui"
     
     #============= comandos para interactuar con el broker de mqtt ===========
