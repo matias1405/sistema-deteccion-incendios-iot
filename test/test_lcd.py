@@ -35,17 +35,19 @@ lcd = GpioLcd(rs_pin=Pin(14),
               d4_pin=Pin(32),
               d5_pin=Pin(25),
               d6_pin=Pin(27),
-              d7_pin=Pin(12),
+              d7_pin=Pin(26),
               num_lines=2, num_columns=16)
  
 # #The following line of codes should be tested one by one according to your needs
-#lcd.clear()
-#time.sleep(1)
-#lcd.move_to(0,0)
+lcd.clear()
+time.sleep(1)
+lcd.move_to(0,0)
 # #1. To print a string to the LCD, you can use
 lcd.putstr('UTN FRT')
 # #2. Now, to clear the display.
-# lcd.clear()
+#lcd.clear()
+time.sleep(1)
 # #3. and to exactly position the cursor location
-#lcd.move_to(0,1)
+lcd.move_to(0,1)
 lcd.putstr('2023')
+time.sleep(1)

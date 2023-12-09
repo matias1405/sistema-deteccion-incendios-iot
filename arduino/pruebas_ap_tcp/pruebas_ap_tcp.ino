@@ -12,15 +12,15 @@ const int d7 = 26;//12
 
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-const char* ssid = "ALFARO";
-const char* password = "MATIAS64P13";
+const char* ssid = "esp32";
+const char* password = "1234matias";
 IPAddress local_IP(192, 168, 100, 10);  // Cambia la dirección IP según tus preferencias
 IPAddress gateway(192, 168, 100, 1);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);   //optional
 IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
-String url_base = "http://ec2-18-231-161-247.sa-east-1.compute.amazonaws.com:1880/nodered?";
+String url = "http://ec2-18-231-161-247.sa-east-1.compute.amazonaws.com:1880/sensores?temperatura=20&humo=62400&pdf=0";
 WiFiServer serverSocket(2020);
 int COUNTER = 0;
 
@@ -38,28 +38,29 @@ void setup() {
   // Print a message to the LCD.
   imprimir("Iniciando...");
   delay(2000);
-  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-    imprimir("STA Failed to configure");
-  }
+  //if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+  //  imprimir("STA Failed to configure");
+  //}
   // Conectar a la red Wi-Fi
   
   imprimir("Conectando a la red Wi-Fi ");
   imprimir(ssid, 0, 1);
+  WiFi.softAP(ssid, password);
+  IPAddress IP = WiFi.softAPIP();
 
-  WiFi.begin(ssid, password);
+  //WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    imprimir(".");
-  }
-
+  //while (WiFi.status() != WL_CONNECTED) {
+  //  delay(1000);
+  //  imprimir(".");
+  //}
   
   imprimir("Conexión Wi-Fi establecida");
   delay(500);
   //WiFi.config(localIP, gateway, subnet);
   delay(500);
   imprimir("Dirección IP estatica configurada: ");
-  imprimir(WiFi.localIP().toString(), 0, 1);
+  imprimir(IP.toString(), 0, 1);
   delay(500);
   serverSocket.begin();
   delay(500);
@@ -75,19 +76,11 @@ void loop() {
       if (client.available()) {
         String request = client.readStringUntil('\r');
         imprimir("Mensaje recibido: ");
-        imprimir(request);
-        // Procesar el mensaje recibido y preparar una respuesta
-        if (COUNTER > 15){
-          String response = "STOP";
-          client.println(response);
-        }
-        else{
-          String response = "OK";
-          client.println(response);
-        }
-        String url = url_base + request;
+        imprimir(request, 0 , 1);
+        delay(1000);
+
         //String url = url_base;
-        
+        /*
         http.begin(url);
 
         int httpCode = http.GET();
@@ -95,12 +88,13 @@ void loop() {
           //imprimir("Código de respuesta HTTP: %d\n", httpCode);
           String payload = http.getString();
           imprimir("Respuesta del servidor:");
-          imprimir(payload), 0, 1;
+          imprimir(payload, 0, 1);
         } else {
           imprimir("Error en la solicitud HTTP");
         }
 
         http.end();
+        */
       }
     }
     

@@ -8,39 +8,134 @@
 #    + Matías Alfaro - matiasalfaro1405@gmail.com
 #    + Romina Farías - romii12mf@gmail.com
 
+import socket
+import utime
 import machine as m
 import network
-import socket
-import time
+import math
+import random
+import urequests
+from gpio_lcd import GpioLcd
 
 #=============== definicion de constantes ======================================
 
-WIFI_NAME = "ESP32-AP"
-PASSWORD = "changeit"
+SSID = ["MOVISTAR WIFI2276", "Galaxy S23 FE 3B0E", "ALFARO"]
+PASSWORD = ["romi1234", "1234matias", "MATIAS64P13"]
+SERVER_IP = ['172.20.1.10', '192.168.102.10', '192.168.100.10']
+GATEWAY = ['172.20.1.1', '192.168.102.163', '192.168.100.1']
+
 
 #============== definicion de clases ========================================
 
 #============== definicion de funciones ========================================
 
+def imprimir(cadena, x=0, y=0, limpiar=True):
+    if limpiar:
+        lcd.clear()
+    lcd.move_to(x,y)
+    lcd.putstr(cadena)
+    utime.sleep(0.2)
+
 #============== inicio del programa ============================================
 
-#creacion del objeto led
-led = m.Pin(PIN_LED_VERDE, m.Pin.OUT)
-led.off()
+PORT = 2020
 
-ap = network.WLAN(network.AP_IF) # create access-point interface
-ap.active(False)
-time.sleep(1)
-ap.config(ssid=WIFI_NAME) # set the SSID of the access point
-ap.config(key=PASSWORD)
-ap.config(max_clients=10) # set how many clients can connect to the network
-ap.active(True)
-print(ap.ifconfig())
+lcd = GpioLcd(rs_pin=m.Pin(14),
+              enable_pin=m.Pin(13),
+              d4_pin=m.Pin(32),
+              d5_pin=m.Pin(25),
+              d6_pin=m.Pin(27),
+              d7_pin=m.Pin(26),
+              num_lines=2, num_columns=16)
+
+imprimir("Iniciando...", 0, 0, True)
+
+sta_if = network.WLAN(network.STA_IF)
+utime.sleep(2)
+sta_if.active(False)
+utime.sleep(2)
+sta_if.active(True)
+utime.sleep(2)
+
+imprimir("Conectando...", 0, 0, True)
+
+for i in range(3):
+    try:
+        if sta_if.isconnected():
+            break
+        print("red_: ", SSID[i])
+        sta_if.connect(SSID[i], PASSWORD[i])
+        # Espera a que se establezca la conexión WiFi
+        tiempo_inicial = utime.time()
+        red = i
+        while not sta_if.isconnected() and utime.time() - tiempo_inicial < 10:
+            print(".")
+            utime.sleep_ms(200)
+        if not sta_if.isconnected():
+            sta_if.active(False)
+            utime.sleep(2)
+            sta_if.active(True)
+            utime.sleep(2)    
+    except Exception as e:
+        print(e)
+        
+
+# Si no se logra conectar, se desactiva el modo WiFi
+if not sta_if.isconnected():
+    imprimir("No se pudo\nconectar al WiFi", 0, 0, True)
+    sta_if.active(False)
+else:
+    print("red: ", SSID[red])
+    imprimir("Red conectada", 0, 0, True)
+    imprimir(SSID[red], 0, 1, False)
+    utime.sleep(3)
+
+print(sta_if.ifconfig())
+configuracion = sta_if.ifconfig()
+
+if SERVER_IP[red] != configuracion[0]:
+    sta_if.ifconfig((SERVER_IP[red], configuracion[1], configuracion[2], configuracion[3]))
+    utime.sleep(3)
+nueva_configuracion = sta_if.ifconfig()
+ip = nueva_configuracion[0]
+imprimir(ip, 0, 0, True)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind((ip, 2020))
+print(ip)
+s.listen(10)
 
-s.close()
-for i in range(10):
-    print(".")
-    time.sleep(5)
+url_base = "http://ec2-18-231-161-247.sa-east-1.compute.amazonaws.com:1880/sensores?"
+
+while True:
+    (clientsocket, address) = s.accept()
+    print(address)  
+    try:
+        while True:
+            try:
+                data = clientsocket.recv(128)
+                data = data.decode()
+                print("data: ", data)
+                if len(data) > 0:
+                    medidas = data.split("&")
+                    if int(medidas[2]):
+                        cadena = f"T:{medidas[1]}^C  Pdf:SI"
+                    else:
+                        cadena = f"T:{medidas[1]}^C  Pdf:NO"
+                    imprimir(cadena, 0, 0, True)   
+                    cadena = f'Humo:{medidas[0]} ppm'
+                    imprimir(cadena, 0, 1, False)
+                    url = url_base + f'humo={medidas[0]}&temp={medidas[1]}&pdf={medidas[2]}'
+                    print(url)
+                    response = urequests.get(url)
+                    print(response.text)
+                    cadena = "OK".encode()
+                    clientsocket.send(cadena)
+            except OSError as e:
+                print(e)
+    finally: 
+        clientsocket.close()
+    utime.sleep(5)
+
+s.close() 
 
