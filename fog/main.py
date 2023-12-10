@@ -19,13 +19,33 @@ from gpio_lcd import GpioLcd
 
 #=============== definicion de constantes ======================================
 
-SSID = ["MOVISTAR WIFI2276", "Galaxy S23 FE 3B0E", "ALFARO"]
+SSID = ["ESP 32", "Galaxy S23 FE 3B0E", "ALFARO"]
 PASSWORD = ["romi1234", "1234matias", "MATIAS64P13"]
-SERVER_IP = ['172.20.1.10', '192.168.102.10', '192.168.100.10']
-GATEWAY = ['172.20.1.1', '192.168.102.163', '192.168.100.1']
+SERVER_IP = ['192.168.135.10', '192.168.102.10', '192.168.100.10']
+GATEWAY = ['192.168.135.194', '192.168.102.163', '192.168.100.1']
 
 
 #============== definicion de clases ========================================
+
+class Estado:
+    """
+    almacena dos lista: la primera almacena el estado dado por los ssensores
+    de temperatura, flama y humo.
+    """
+    def __init__(self):
+        self.lista_estado = [False, False, False]
+
+    def temperatura(self, x):
+        self.lista_estado[1] = x
+
+    def flama(self, x):
+        self.lista_estado[2] = x
+
+    def humo(self, x):
+        self.lista_estado[0] = x
+    
+    def evaluar(self):
+        return sum(self.lista_estado)
 
 #============== definicion de funciones ========================================
 
@@ -51,11 +71,11 @@ lcd = GpioLcd(rs_pin=m.Pin(14),
 imprimir("Iniciando...", 0, 0, True)
 
 sta_if = network.WLAN(network.STA_IF)
-utime.sleep(2)
+utime.sleep(1)
 sta_if.active(False)
-utime.sleep(2)
+utime.sleep(1)
 sta_if.active(True)
-utime.sleep(2)
+utime.sleep(1)
 
 imprimir("Conectando...", 0, 0, True)
 
@@ -92,6 +112,7 @@ else:
 
 print(sta_if.ifconfig())
 configuracion = sta_if.ifconfig()
+estado = Estado()
 
 if SERVER_IP[red] != configuracion[0]:
     sta_if.ifconfig((SERVER_IP[red], configuracion[1], configuracion[2], configuracion[3]))
@@ -118,10 +139,23 @@ while True:
                 print("data: ", data)
                 if len(data) > 0:
                     medidas = data.split("&")
-                    if int(medidas[2]):
+                    if float(medidas[1]) > 58: #temperatura
+                        estado.temperatura(True)
+                    else:
+                        estado.temperatura(False)
+                    print(".")
+                    if int(medidas[0]) > 1000: #humo
+                        estado.humo(True)
+                    else:
+                        estado.humo(False)
+                    print(".")
+                    if int(medidas[2]): #pdf
                         cadena = f"T:{medidas[1]}^C  Pdf:SI"
+                        estado.flama(True)
                     else:
                         cadena = f"T:{medidas[1]}^C  Pdf:NO"
+                        estado.flama(False)
+                    print(".")
                     imprimir(cadena, 0, 0, True)   
                     cadena = f'Humo:{medidas[0]} ppm'
                     imprimir(cadena, 0, 1, False)
@@ -129,12 +163,17 @@ while True:
                     print(url)
                     response = urequests.get(url)
                     print(response.text)
-                    cadena = "OK".encode()
+                    if estado.evaluar() >= 2:
+                        cadena = "INCENDIO".encode()
+                    else:
+                        cadena = "OK".encode()
+                    print(".")
                     clientsocket.send(cadena)
-            except OSError as e:
+            except Exception as e:
                 print(e)
     finally: 
         clientsocket.close()
+        s.close()
     utime.sleep(5)
 
 s.close() 

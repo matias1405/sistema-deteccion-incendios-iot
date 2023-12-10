@@ -26,9 +26,9 @@ PIN_LED_VERDE = 2 #led integrado en la placa del esp32
 PIN_LED_ROJO = 10 #led indicador #cambiar por embedded flash a gpio 10 pin 17
 PIN_BUZZER = 14 #gpio 14 y pin nro 12
 
-SSID = ["MOVISTAR WIFI2276", "Galaxy S23 FE 3B0E", "ALFARO"]
+SSID = ["ESP 32", "Galaxy S23 FE 3B0E", "ALFARO"]
 PASSWORD = ["romi1234", "1234matias", "MATIAS64P13"]
-SERVER_IP = ['172.20.1.10', '192.168.102.10', '192.168.100.10']
+SERVER_IP = ['192.168.135.10', '192.168.102.10', '192.168.100.10']
 PORT = 2020
 TEMP_MAX = 57
 VEL_AUMENT_TEMP_MAX = 8.3
