@@ -36,7 +36,7 @@ VEL_AUMENT_TEMP_MAX = 8.3
 STOP_FLAG = False
 INCENDIO = False
 
-TIME_PUB = 4
+TIME_PUB = 5
 
 #============== definicion de clases ========================================
 
@@ -121,13 +121,16 @@ def notificar():
     utime.sleep(1)
     cadena = s.recv(512).decode().strip()
     print(cadena)
+    global TIME_PUB
     global INCENDIO
     if cadena == 'OK':
         if INCENDIO:
             INCENDIO = False
+            TIME_PUB = 5
     elif cadena == 'INCENDIO':
         if not INCENDIO:
             INCENDIO = True
+            TIME_PUB = 1
 
 def terminar():
     buzzer.on()
@@ -150,8 +153,6 @@ def avisar_incendio():
     buzzer.off()
     led.off()
     utime.sleep(0.5)
-    global TIME_PUB
-    utime.sleep(TIME_PUB)
 
 
 #============== inicio del programa ============================================
@@ -218,22 +219,21 @@ try:
     while True:
     #for i in range(10):
         try:
-            if INCENDIO:
-                avisar_incendio()
-            print(".")
+            #print(".")
             lm35.medir()
             if INCENDIO:
                 avisar_incendio()
-            print(".")
+            #print(".")
             mq2.medir_humo()
             if INCENDIO:
                 avisar_incendio()
-            print(".")
+            #print(".")
             ky026.medir_flama()
             notificar()
             if INCENDIO:
                 avisar_incendio()
-            print(".")
+            #print(".")
+            utime.sleep(TIME_PUB)
 
         except Exception as e:
             print(e)

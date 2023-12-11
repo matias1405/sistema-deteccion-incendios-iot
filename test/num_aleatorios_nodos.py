@@ -90,7 +90,7 @@ def connect_mqtt() -> mqtt_client:
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         mensaje = msg.payload.decode()
-        print(f"Received '{mensaje}' from '{msg.topic}' topic")
+        #print(f"Received '{mensaje}' from '{msg.topic}' topic")
         if msg.topic == "nodo-sensores/temperatura":
             c_temperatura.add(float(mensaje))
             nodo2.publicar_t(client)

@@ -150,33 +150,33 @@ try:
             while True:
                 data = clientsocket.recv(128)
                 data = data.decode()
-                print("data: ", data)
+                #print("data: ", data)
                 if len(data) > 0:
                     medidas = data.split("&")
                     if float(medidas[1]) > 58: #temperatura
                         estado.temperatura(True)
                     else:
                         estado.temperatura(False)
-                    print(".")
+                    #print(".")
                     if int(medidas[0]) > 1000: #humo
                         estado.humo(True)
                     else:
                         estado.humo(False)
-                    print(".")
+                    #print(".")
                     if int(medidas[2]): #pdf
                         cadena = f"T:{medidas[1]}^C  Pdf:SI"
                         estado.flama(True)
                     else:
                         cadena = f"T:{medidas[1]}^C  Pdf:NO"
                         estado.flama(False)
-                    print(".")
+                    #print(".")
                     imprimir(cadena, 0, 0, True)   
                     cadena = f'Humo:{medidas[0]} ppm'
                     imprimir(cadena, 0, 1, False)
                     url = URL_BASE + f'sensores?humo={medidas[0]}&temp={medidas[1]}&pdf={medidas[2]}'
-                    print(url)
+                    #print(url)
                     response = urequests.get(url)
-                    print(response.text)
+                    #print(response.text)
                     estado.evaluar()
                     if estado.situacion_incendio:
                         cadena = "INCENDIO".encode()
@@ -184,7 +184,7 @@ try:
                     else:
                         cadena = "OK".encode()
                         clientsocket.send(cadena)
-                    print("....")
+                    #print("....")
         except Exception as e:
             print(e) 
         finally:
