@@ -163,21 +163,6 @@ async def verificacion_password(update: Update, context: ContextTypes.DEFAULT_TY
     return ConversationHandler.END
 
 
-async def callback_terminado(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Responde silenciosamente al llamado de una callback_query, luego cambia el
-    boton y texto asociado por un mensaje.
-    Esta funcion es llamada si el usuario avisa al bot que el incendio
-    termino para que este a su vez, avise al sistema.
-    """
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(text='Aviso enviado')
-    #print('Aviso de incendio terminado RECIBIDO')
-    msg = "terminado"
-    client.publish(TOPIC_PUB, msg)
-
-
 async def registrar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -232,8 +217,10 @@ def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         mensaje = msg.payload.decode()
         #print(f"Received '{mensaje}' from '{msg.topic}' topic")
-        if mensaje == 'incendio':
+        if mensaje == 'INCENDIO':
             asyncio.run(notificar())
+        elif mensaje == 'OK':
+            asyncio.run(notificar_ok())
 
     client.subscribe(TOPIC_SUB)
     client.on_message = on_message
@@ -243,23 +230,30 @@ async def notificar():
     """
     Esta funcion crea otro bot que avisa a los usuarios en caso de incendio.
     El aviso se da a todos los usuarios registrados en la base de datos.
-    El mensaje consta de un texto y un boton que el usuario deberára presionar
-    cuando el incendio haya terminado para avisar al sistema.
     """
     aviso = f"Este es un aviso de INCENDIO, por favor contacta con las autoridades de emergencia.\n"
     aviso += f"Nro tel Bomberos: 100\n\nPara monitorear la emergencia puede ingresar a la siguiente url:"
-    aviso += f"\n {url}\n\nPor favor notifique por este medio al Sistema cuando la situación de incendio haya terminado."
+    aviso += f"\n {url}"
     #print('notificando...')
     bot = Bot(token=_token)
-    button = InlineKeyboardButton(
-        text = 'Incendio Terminado',
-        callback_data = 'incendio_terminado'
-    )
     for id_acep in db.get_id():
         await bot.sendMessage(
             chat_id=id_acep,
-            text=aviso,
-            reply_markup = InlineKeyboardMarkup([[button]])
+            text=aviso
+        )
+
+
+async def notificar_ok():
+    """
+    Esta funcion notifica cuando el incendio a terminado
+    """
+    aviso = f"El estado de INCENDIO ha finalizado."
+    #print('notificando...')
+    bot = Bot(token=_token)    
+    for id_acep in db.get_id():
+        await bot.sendMessage(
+            chat_id=id_acep,
+            text=aviso
         )
 
 
@@ -298,10 +292,6 @@ if __name__ == '__main__':
     )
     #cuando el se reciba un callback_data relacionado a la palabra pattern
     #llama a la funcion callback especificada
-    application.add_handler(CallbackQueryHandler(
-        pattern = 'incendio_terminado',
-        callback = callback_terminado)
-    )
     application.add_handler(CallbackQueryHandler(
         pattern = 'baja',
         callback = callback_dar_baja)

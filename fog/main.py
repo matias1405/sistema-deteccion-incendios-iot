@@ -19,11 +19,14 @@ from gpio_lcd import GpioLcd
 
 #=============== definicion de constantes ======================================
 
-SSID = ["ESP 32", "Galaxy S23 FE 3B0E", "ALFARO"]
+SSID = ["ESP 32", "ESP 32", "ALFARO"]
 PASSWORD = ["romi1234", "1234matias", "MATIAS64P13"]
 SERVER_IP = ['192.168.135.10', '192.168.102.10', '192.168.100.10']
 GATEWAY = ['192.168.135.194', '192.168.102.163', '192.168.100.1']
 
+PORT = 2020
+
+URL_BASE = "http://ec2-18-231-161-247.sa-east-1.compute.amazonaws.com:1880/"
 
 #============== definicion de clases ========================================
 
@@ -34,6 +37,7 @@ class Estado:
     """
     def __init__(self):
         self.lista_estado = [False, False, False]
+        self.situacion_incendio = False
 
     def temperatura(self, x):
         self.lista_estado[1] = x
@@ -45,7 +49,21 @@ class Estado:
         self.lista_estado[0] = x
     
     def evaluar(self):
-        return sum(self.lista_estado)
+        if sum(self.lista_estado) >= 1:
+            if not self.situacion_incendio:
+                self.situacion_incendio = True
+                url = URL_BASE + f'estado?estado=INCENDIO'
+                print(url)
+                response = urequests.get(url)
+                print(response.text)
+        else:
+            if self.situacion_incendio:
+                self.situacion_incendio = False
+                url = URL_BASE + f'estado?estado=OK'
+                print(url)
+                response = urequests.get(url)
+                print(response.text)
+
 
 #============== definicion de funciones ========================================
 
@@ -57,8 +75,6 @@ def imprimir(cadena, x=0, y=0, limpiar=True):
     utime.sleep(0.2)
 
 #============== inicio del programa ============================================
-
-PORT = 2020
 
 lcd = GpioLcd(rs_pin=m.Pin(14),
               enable_pin=m.Pin(13),
@@ -93,9 +109,9 @@ for i in range(3):
             utime.sleep_ms(200)
         if not sta_if.isconnected():
             sta_if.active(False)
-            utime.sleep(2)
+            utime.sleep(1)
             sta_if.active(True)
-            utime.sleep(2)    
+            utime.sleep(1)    
     except Exception as e:
         print(e)
         
@@ -122,18 +138,16 @@ ip = nueva_configuracion[0]
 imprimir(ip, 0, 0, True)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((ip, 2020))
-print(ip)
-s.listen(10)
-
-url_base = "http://ec2-18-231-161-247.sa-east-1.compute.amazonaws.com:1880/sensores?"
-
-while True:
-    (clientsocket, address) = s.accept()
-    print(address)  
-    try:
-        while True:
-            try:
+try:
+    s.bind((ip, 2020))
+    print(ip)
+    s.listen(10)
+    while True:
+        (clientsocket, address) = s.accept()
+        print(address)  
+        imprimir("Cliente \nconectado", 0, 0, True)
+        try:
+            while True:
                 data = clientsocket.recv(128)
                 data = data.decode()
                 print("data: ", data)
@@ -159,22 +173,24 @@ while True:
                     imprimir(cadena, 0, 0, True)   
                     cadena = f'Humo:{medidas[0]} ppm'
                     imprimir(cadena, 0, 1, False)
-                    url = url_base + f'humo={medidas[0]}&temp={medidas[1]}&pdf={medidas[2]}'
+                    url = URL_BASE + f'sensores?humo={medidas[0]}&temp={medidas[1]}&pdf={medidas[2]}'
                     print(url)
                     response = urequests.get(url)
                     print(response.text)
-                    if estado.evaluar() >= 2:
+                    estado.evaluar()
+                    if estado.situacion_incendio:
                         cadena = "INCENDIO".encode()
+                        clientsocket.send(cadena)
                     else:
                         cadena = "OK".encode()
-                    print(".")
-                    clientsocket.send(cadena)
-            except Exception as e:
-                print(e)
-    finally: 
-        clientsocket.close()
-        s.close()
-    utime.sleep(5)
-
-s.close() 
+                        clientsocket.send(cadena)
+                    print("....")
+        except Exception as e:
+            print(e) 
+        finally:
+            clientsocket.close()
+            imprimir("Cliente \nno conectado", 0, 0, True)
+            utime.sleep(1)
+finally:
+    s.close() 
 
