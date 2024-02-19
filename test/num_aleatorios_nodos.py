@@ -91,10 +91,8 @@ def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         mensaje = msg.payload.decode()
         #print(f"Received '{mensaje}' from '{msg.topic}' topic")
-        if msg.topic == "nodo-sensores/temperatura":
+        if msg.topic == "nodo-sensores/1001/temperatura":
             c_temperatura.add(float(mensaje))
-            nodo2.publicar_t(client)
-            #time.sleep(1)
             nodo3.publicar_t(client)
             #time.sleep(1)
             nodo4.publicar_t(client)
@@ -106,8 +104,6 @@ def subscribe(client: mqtt_client):
             nodo7.publicar_t(client)
         else:
             c_humo.add(float(mensaje))
-            nodo2.publicar_h(client)
-            #time.sleep(1)
             nodo3.publicar_h(client)
             #time.sleep(1)
             nodo4.publicar_h(client)
@@ -118,7 +114,7 @@ def subscribe(client: mqtt_client):
             #time.sleep(1)
             nodo7.publicar_h(client)        
 
-    client.subscribe([("nodo-sensores/temperatura", 0), ("nodo-sensores/humo", 0)])
+    client.subscribe([("nodo-sensores/1001/temperatura", 0), ("nodo-sensores/1001/humo", 0)])
     client.on_message = on_message
 
 DISM_MOD_TIEMPO = 0.01
@@ -130,7 +126,7 @@ PORT = 1883
 c_temperatura = Colas(60)
 c_humo = Colas(60)
 
-nodo2 = Nodo(name="nodo2", t_mod_dist=0.2, t_mod_tiempo=20, h_mod_dist=0.2, h_mod_tiempo=20, t_lim=40, h_lim=400000) #bano
+#nodo2 = Nodo(name="nodo2", t_mod_dist=0.2, t_mod_tiempo=20, h_mod_dist=0.2, h_mod_tiempo=20, t_lim=40, h_lim=400000) #bano
 nodo3 = Nodo(name="nodo3", t_mod_dist=0.3, t_mod_tiempo=30, h_mod_dist=0.3, h_mod_tiempo=30, t_lim=50, h_lim=500000) #habitacionA
 nodo4 = Nodo(name="nodo4", t_mod_dist=0.4, t_mod_tiempo=40, h_mod_dist=0.4, h_mod_tiempo=40, t_lim=60, h_lim=400000) #habitacionB
 nodo5 = Nodo(name="nodo5", t_mod_dist=0.5, t_mod_tiempo=50, h_mod_dist=0.5, h_mod_tiempo=50, t_lim=40, h_lim=600000) #habitacionC

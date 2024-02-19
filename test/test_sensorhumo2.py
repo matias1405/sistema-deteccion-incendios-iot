@@ -91,25 +91,33 @@ class SensorHumo:
         self.pin_s_humo.atten(m.ADC.ATTN_11DB)
         self.calculos()
         self.medir_humo()
+        print("R0: ", self.R0)
+        print("x1: ", self.x1)
+        print("y1: ", self.y1)
+        print("curva: ", self.curva)
 
     def calculos(self):
-        voltaje_i = self.pin_s_humo.read_uv()/1000000
+        voltaje_i = self.pin_s_humo.read_uv()/1000000*1.588028
         #voltaje_i = voltaje_i * 3.3 / 4096
         self.R0 = 1000 * (5 - voltaje_i) / voltaje_i
         self.R0 = self.R0 / 9.7
-        self.x1 = math.log10(200)
-        self.y1 = math.log10(3.43)
-        x2 = math.log10(10000)
-        y2 = math.log10(0.61)
+        self.x1 = math.log(200)/math.log(10)
+        self.y1 = math.log(3.43)/math.log(10)
+        x2 = math.log(10000)/math.log(10)
+        y2 = math.log(0.61)/math.log(10)
         self.curva = (y2 - self.y1)/(x2 - self.x1)
     
     def medir_humo(self):
-        voltaje_i = self.pin_s_humo.read_uv()/1000000
+        voltaje_i = self.pin_s_humo.read_uv()/1000000*1.588028
+        print(voltaje_i)
+        if voltaje_i > 3.3:
+            voltaje_i = 3.3
+        print(voltaje_i)
         RS = 1000 * (5 - voltaje_i) / voltaje_i
         ratio = RS/self.R0
-        exponente = (math.log10(ratio)-self.y1)/self.curva
+        exponente = ((math.log(ratio)/math.log(10))-self.y1)/self.curva
         exponente = exponente + self.x1
-        self.ppm = 10**exponente
+        self.ppm = int(10**exponente)
 
 
 class SensorFlama:
@@ -221,12 +229,13 @@ def notificar_flama(self):
 #====================================================================
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
+buzzer = m.Pin(PIN_BUZZER, m.Pin.OUT)
+buzzer.off()
 estado = Estado()
 #creacion de los objetos para los sensores
 mq2 = SensorHumo(PIN_SHUMO)
 print("sensor humo creado")
-
+"""
 sta_if = network.WLAN(network.STA_IF)
 time.sleep(2)
 sta_if.active(False)
@@ -248,7 +257,7 @@ if not sta_if.isconnected():
     sta_if.active(False)
 
 print('network config:', sta_if.ifconfig())
-
+"""
 
 while True:
     time.sleep(1)

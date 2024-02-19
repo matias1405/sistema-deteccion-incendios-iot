@@ -19,10 +19,10 @@ from gpio_lcd import GpioLcd
 
 #=============== definicion de constantes ======================================
 
-SSID = ["ESP 32", "ESP 32", "ALFARO"]
+SSID = ["ESP 32", "Galaxy S23 FE 3B0E", "ALFARO"]
 PASSWORD = ["romi1234", "1234matias", "MATIAS64P13"]
-SERVER_IP = ['192.168.135.10', '192.168.102.10', '192.168.100.10']
-GATEWAY = ['192.168.135.194', '192.168.102.163', '192.168.100.1']
+SERVER_IP = ['192.168.135.10', '192.168.31.10', '192.168.100.10']
+GATEWAY = ['192.168.135.194', '192.168.31.143', '192.168.100.1']
 
 PORT = 2020
 
@@ -79,10 +79,11 @@ class Cola_Conexiones:
                 cadena = f'Disp id:{d.id}'
                 imprimir(cadena, 0, 0, True)
                 imprimir("desconectado", 0, 1, False)
-                #url = URL_BASE + f'{d.id}?estado=0'
-                #print(url)
+                url = URL_BASE + f'{d.id}?estado=0'
+                print(url)
                 response = urequests.get(url)
                 #print(response.text)
+                print("baja", d.id)
                 utime.sleep(3)
                 dispositivos.pop(d.address)
 
@@ -169,6 +170,7 @@ identificar = False
 conexiones = Cola_Conexiones()
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 try:
     s.bind((ip, 2020))
     print(ip)
@@ -182,43 +184,42 @@ try:
         else:
             cadena = "No identificado"
             identificar = True
+        print(cadena)
         imprimir(cadena, 0, 1, False)
         try:
             while True:
                 data = clientsocket.recv(256)
                 data = data.decode()
-                #print("data: ", data)
+                print("data: ", data)
                 if len(data) > 0:
                     datos = data.split("&")
                     if identificar:
                         dispositivos[address[0]] = Dispositivos(datos[3], address[0])
+                        print(dispositivos)
                         identificar = False
+                    if datos[3] == '1001':
+                        #print(datos[1])
+                        t = float(datos[1])
+                        t = round(t*0.9, 1)
+                        datos[1] = str(t)
                     if float(datos[1]) > 58: #temperatura
                         dispositivos[address[0]].temperatura(True)
                     else:
                         dispositivos[address[0]].temperatura(False)
-                    #print(".")
+                    print(".")
                     if int(datos[0]) > 1000: #humo
                         dispositivos[address[0]].humo(True)
                     else:
                         dispositivos[address[0]].humo(False)
-                    #print(".")
+                    print(".")
                     if int(datos[2]): #pdf
                         cadena = f"T:{datos[1]}^C  Pdf:SI"
                         dispositivos[address[0]].flama(True)
                     else:
                         cadena = f"T:{datos[1]}^C  Pdf:NO"
                         dispositivos[address[0]].flama(False)
-                    #print(".")
-                    imprimir(cadena, 0, 0, True)   
-                    cadena = f'Humo:{datos[0]} ppm'
-                    imprimir(cadena, 0, 1, False)
-                    url = URL_BASE + f'sensores/{datos[3]}?humo={datos[0]}&temp={datos[1]}&pdf={datos[2]}'
-                    #print(url)
-                    response = urequests.get(url)
-                    #print(response.text)
+
                     dispositivos[address[0]].evaluar()
-                    conexiones.evaluar(datos[3])
                     estado_old = estado
                     estado = "OK"
                     for d in dispositivos.values():
@@ -229,11 +230,23 @@ try:
                         #print(url)
                         response = urequests.get(url)
                         #print(response.text)
-
+                    print(estado)
                     clientsocket.send(estado.encode())
+                    print(".")
+
+                    imprimir(cadena, 0, 0, True)   
+                    cadena = f'Humo:{datos[0]} ppm'
+                    imprimir(cadena, 0, 1, False)
+                    url = URL_BASE + f'sensores/{datos[3]}?humo={datos[0]}&temp={datos[1]}&pdf={datos[2]}'
+                    print(url)
+                    response = urequests.get(url)
+                    print(response.text)
+                    conexiones.evaluar(datos[3])
+                    print(conexiones.lista)
                     print("....")
                     break
         except Exception as e:
+            print("error")
             print(e) 
         finally:
             clientsocket.close()
