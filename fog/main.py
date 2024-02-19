@@ -28,16 +28,25 @@ PORT = 2020
 
 URL_BASE = "http://ec2-18-231-161-247.sa-east-1.compute.amazonaws.com:1880/"
 
+DISP_DESCONECTADO = False
+estado = 'OK'
+
 #============== definicion de clases ========================================
 
-class Estado:
+class Dispositivos:
     """
     almacena dos lista: la primera almacena el estado dado por los ssensores
     de temperatura, flama y humo.
     """
-    def __init__(self):
+    def __init__(self, _id, _address):
+        self.address = _address
+        self.id = _id
         self.lista_estado = [False, False, False]
         self.situacion_incendio = False
+        url = URL_BASE + f'{self.id}?estado=1'
+        #print(url)
+        response = urequests.get(url)
+        #print(response.text)
 
     def temperatura(self, x):
         self.lista_estado[1] = x
@@ -52,17 +61,36 @@ class Estado:
         if sum(self.lista_estado) >= 1:
             if not self.situacion_incendio:
                 self.situacion_incendio = True
-                url = URL_BASE + f'estado?estado=INCENDIO'
-                print(url)
-                response = urequests.get(url)
-                print(response.text)
         else:
             if self.situacion_incendio:
                 self.situacion_incendio = False
-                url = URL_BASE + f'estado?estado=OK'
-                print(url)
+
+
+class Cola_Conexiones:
+    def __init__(self):
+        self.lista = []
+
+    def evaluar(self, nueva_c):
+        self.add(nueva_c)
+        if len(self.lista) > 4:
+            self.remove()
+        for d in dispositivos.values():
+            if d.id not in self.lista:
+                cadena = f'Disp id:{d.id}'
+                imprimir(cadena, 0, 0, True)
+                imprimir("desconectado", 0, 1, False)
+                #url = URL_BASE + f'{d.id}?estado=0'
+                #print(url)
                 response = urequests.get(url)
-                print(response.text)
+                #print(response.text)
+                utime.sleep(3)
+                dispositivos.pop(d.address)
+
+    def add(self, conexion):
+        self.lista.append(conexion)
+
+    def remove(self):
+        self.lista.pop(0)
 
 
 #============== definicion de funciones ========================================
@@ -128,7 +156,6 @@ else:
 
 print(sta_if.ifconfig())
 configuracion = sta_if.ifconfig()
-estado = Estado()
 
 if SERVER_IP[red] != configuracion[0]:
     sta_if.ifconfig((SERVER_IP[red], configuracion[1], configuracion[2], configuracion[3]))
@@ -136,6 +163,10 @@ if SERVER_IP[red] != configuracion[0]:
 nueva_configuracion = sta_if.ifconfig()
 ip = nueva_configuracion[0]
 imprimir(ip, 0, 0, True)
+
+dispositivos = {}
+identificar = False
+conexiones = Cola_Conexiones()
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
@@ -145,52 +176,69 @@ try:
     while True:
         (clientsocket, address) = s.accept()
         print(address)  
-        imprimir("Cliente \nconectado", 0, 0, True)
+        imprimir("Disp conectado", 0, 0, True)
+        if address[0] in dispositivos:
+            cadena = f'id: {dispositivos[address[0]].id}'
+        else:
+            cadena = "No identificado"
+            identificar = True
+        imprimir(cadena, 0, 1, False)
         try:
             while True:
-                data = clientsocket.recv(128)
+                data = clientsocket.recv(256)
                 data = data.decode()
                 #print("data: ", data)
                 if len(data) > 0:
-                    medidas = data.split("&")
-                    if float(medidas[1]) > 58: #temperatura
-                        estado.temperatura(True)
+                    datos = data.split("&")
+                    if identificar:
+                        dispositivos[address[0]] = Dispositivos(datos[3], address[0])
+                        identificar = False
+                    if float(datos[1]) > 58: #temperatura
+                        dispositivos[address[0]].temperatura(True)
                     else:
-                        estado.temperatura(False)
+                        dispositivos[address[0]].temperatura(False)
                     #print(".")
-                    if int(medidas[0]) > 1000: #humo
-                        estado.humo(True)
+                    if int(datos[0]) > 1000: #humo
+                        dispositivos[address[0]].humo(True)
                     else:
-                        estado.humo(False)
+                        dispositivos[address[0]].humo(False)
                     #print(".")
-                    if int(medidas[2]): #pdf
-                        cadena = f"T:{medidas[1]}^C  Pdf:SI"
-                        estado.flama(True)
+                    if int(datos[2]): #pdf
+                        cadena = f"T:{datos[1]}^C  Pdf:SI"
+                        dispositivos[address[0]].flama(True)
                     else:
-                        cadena = f"T:{medidas[1]}^C  Pdf:NO"
-                        estado.flama(False)
+                        cadena = f"T:{datos[1]}^C  Pdf:NO"
+                        dispositivos[address[0]].flama(False)
                     #print(".")
                     imprimir(cadena, 0, 0, True)   
-                    cadena = f'Humo:{medidas[0]} ppm'
+                    cadena = f'Humo:{datos[0]} ppm'
                     imprimir(cadena, 0, 1, False)
-                    url = URL_BASE + f'sensores?humo={medidas[0]}&temp={medidas[1]}&pdf={medidas[2]}'
+                    url = URL_BASE + f'sensores/{datos[3]}?humo={datos[0]}&temp={datos[1]}&pdf={datos[2]}'
                     #print(url)
                     response = urequests.get(url)
                     #print(response.text)
-                    estado.evaluar()
-                    if estado.situacion_incendio:
-                        cadena = "INCENDIO".encode()
-                        clientsocket.send(cadena)
-                    else:
-                        cadena = "OK".encode()
-                        clientsocket.send(cadena)
-                    #print("....")
+                    dispositivos[address[0]].evaluar()
+                    conexiones.evaluar(datos[3])
+                    estado_old = estado
+                    estado = "OK"
+                    for d in dispositivos.values():
+                        if d.situacion_incendio:
+                            estado = "INCENDIO"
+                    if estado != estado_old:
+                        url = URL_BASE + f'estado?estado={estado}'
+                        #print(url)
+                        response = urequests.get(url)
+                        #print(response.text)
+
+                    clientsocket.send(estado.encode())
+                    print("....")
+                    break
         except Exception as e:
             print(e) 
         finally:
             clientsocket.close()
-            imprimir("Cliente \nno conectado", 0, 0, True)
             utime.sleep(1)
 finally:
-    s.close() 
+    imprimir("Cliente \nno conectado", 0, 0, True)
+    s.close()
 
